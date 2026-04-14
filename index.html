@@ -995,28 +995,15 @@ function handleExcelUpload(input) {
       const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
       // 첫 행(헤더) 제외, 빈 행 제거
       // 컬럼 자동 감지: 바코드 컬럼 있으면 5열, 없으면 4열
-      // 헤더 첫 셀이 "바코드"면 5열 형식
-      const headerRow = rows[0] || [];
-      const hasBarcodeCol = String(headerRow[0]||'').trim() === '바코드';
-      uploadData = rows.slice(1).filter(r => r[0] || r[1] || r[2]).map(r => {
-        if (hasBarcodeCol) {
-          return {
-            barcode: String(r[0]||'').trim() || null,
-            name:    String(r[1]||'').trim(),
-            variant: String(r[2]||'').trim().replace('—','') || null,
-            price:   parseInt(r[3]) || 0,
-            stock:   parseInt(r[4]) || 0,
-          };
-        } else {
-          return {
-            barcode: null,
-            name:    String(r[0]||'').trim(),
-            variant: String(r[1]||'').trim().replace('—','') || null,
-            price:   parseInt(r[2]) || 0,
-            stock:   parseInt(r[3]) || 0,
-          };
-        }
-      }).filter(r => r.name);
+      // 헤더 행 건너뛰고 항상 5열 형식으로 읽기
+      // 컬럼: 바코드(0) | 상품명(1) | 옵션(2) | 판매가(3) | 재고(4)
+      uploadData = rows.slice(1).filter(r => r[1]).map(r => ({
+        barcode: String(r[0]||'').trim() || null,
+        name:    String(r[1]||'').trim(),
+        variant: String(r[2]||'').trim().replace('—','') || null,
+        price:   parseInt(r[3]) || 0,
+        stock:   parseInt(r[4]) || 0,
+      })).filter(r => r.name);
 
       if (!uploadData.length) { toast('상품 데이터가 없습니다','error'); return; }
 
