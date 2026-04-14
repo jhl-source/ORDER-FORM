@@ -376,7 +376,7 @@ document.getElementById('order-subtitle').textContent = CONFIG.eventName;
 document.getElementById('nav-brand').textContent      = CONFIG.brandName;
 document.title = CONFIG.brandName + ' 팝업스토어';
 
-const supabase = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseKey);
+const sb = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseKey);
 
 // --- State ---
 let S = {
@@ -419,7 +419,7 @@ function toast(msg, type='') {
 }
 
 function clearChannels() {
-  S.channels.forEach(ch => { try { supabase.removeChannel(ch); } catch(e){} });
+  S.channels.forEach(ch => { try { sb.removeChannel(ch); } catch(e){} });
   S.channels = [];
 }
 
@@ -615,7 +615,7 @@ async function submitOrder() {
   btn.disabled = true; btn.textContent = '처리 중...';
 
   try {
-    const { data, error } = await supabase.rpc('place_order', {
+    const { data, error } = await sb.rpc('place_order', {
       p_customer_name: name, p_customer_phone: phone,
       p_items: items, p_notes: notes || null,
     });
@@ -657,8 +657,8 @@ function showOrderSuccess(name, items, total, orderId) {
 async function loadDashboard() {
   try {
     const [pr, or] = await Promise.all([
-      supabase.from('products').select('*').order('created_at'),
-      supabase.from('orders').select('id,total_amount,created_at'),
+      sb.from('products').select('*').order('created_at'),
+      sb.from('orders').select('id,total_amount,created_at'),
     ]);
     S.products = pr.data || [];
     S.orders   = or.data || [];
@@ -717,7 +717,7 @@ function renderDashboard() {
 }
 
 function subscribeDashboard() {
-  const ch = supabase.channel('dash')
+  const ch = sb.channel('dash')
     .on('postgres_changes',{event:'*',schema:'public',table:'products'}, loadDashboard)
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'orders'}, loadDashboard)
     .subscribe();
@@ -770,7 +770,7 @@ async function loadOrders() {
   }
 
   // Subscribe to new orders
-  const ch = supabase.channel('orders-new')
+  const ch = sb.channel('orders-new')
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'orders'}, () => {
       loadOrders();
       toast('🎉 새 주문이 접수되었습니다!','success');
@@ -844,13 +844,13 @@ async function loadInventory() {
 async function updateStock(id, val) {
   const stock = parseInt(val);
   if (isNaN(stock)||stock<0) return;
-  const { error } = await supabase.from('products').update({stock}).eq('id',id);
+  const { error } = await sb.from('products').update({stock}).eq('id',id);
   error ? toast('재고 업데이트 실패: '+error.message,'error')
         : toast('재고가 업데이트되었습니다','success');
 }
 
 async function toggleAvail(id, val) {
-  const { error } = await supabase.from('products').update({is_available:val}).eq('id',id);
+  const { error } = await sb.from('products').update({is_available:val}).eq('id',id);
   if (error) { toast('업데이트 실패','error'); loadInventory(); }
   else toast(val ? '판매 활성화' : '판매 중지');
 }
@@ -887,11 +887,11 @@ async function saveProduct() {
   if (isNaN(stock)||stock<0) { toast('올바른 재고를 입력하세요','error'); return; }
 
   if (id) {
-    const { error } = await supabase.from('products').update({name,variant:variant||null,price,stock}).eq('id',id);
+    const { error } = await sb.from('products').update({name,variant:variant||null,price,stock}).eq('id',id);
     if (error) { toast('수정 실패: '+error.message,'error'); return; }
     toast('상품이 수정되었습니다','success');
   } else {
-    const { error } = await supabase.from('products')
+    const { error } = await sb.from('products')
       .insert({name, variant:variant||null, price, stock, initial_stock:stock, is_available:true});
     if (error) { toast('추가 실패: '+error.message,'error'); return; }
     toast('상품이 추가되었습니다','success');
@@ -902,7 +902,7 @@ async function saveProduct() {
 
 async function deleteProduct(id, name) {
   if (!confirm(`"${name}" 을(를) 삭제하시겠습니까?`)) return;
-  const { error } = await supabase.from('products').delete().eq('id',id);
+  const { error } = await sb.from('products').delete().eq('id',id);
   error ? toast('삭제 실패','error') : (toast('삭제되었습니다'), loadInventory());
 }
 
