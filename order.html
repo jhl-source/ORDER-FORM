@@ -260,20 +260,19 @@ function renderAll() {
 
 function renderGroups() {
   const list = catProducts(currentCat);
-  // 상품명으로 그룹핑
   const gmap = {};
   list.forEach(p=>{ (gmap[p.name]=gmap[p.name]||[]).push(p); });
 
   let html='';
-  Object.entries(gmap).forEach(([name, items])=>{
+  Object.entries(gmap).forEach(([name, items], idx)=>{
     const isOpen = openGroup===name;
-    const selectedInGroup = items.filter(p=>(cart[p.id]||0)>0);
-    const totalQty = selectedInGroup.reduce((s,p)=>s+(cart[p.id]||0),0);
+    const totalQty = items.reduce((s,p)=>s+(cart[p.id]||0),0);
     const priceRange = getPriceRange(items);
     const allSoldOut = items.every(p=>p.stock<=0);
+    const gid = 'g'+idx;
 
-    html+=`<div class="pgroup${isOpen?' open':''}${totalQty>0?' has-selection':''}" id="grp-${esc(name)}">
-      <div class="pgroup-header" onclick="toggleGroup('${esc(name)}')">
+    html+=`<div class="pgroup${isOpen?' open':''}${totalQty>0?' has-selection':''}" id="${gid}" data-gname="${name.replace(/"/g,'&quot;')}">
+      <div class="pgroup-header" data-toggle="${gid}">
         <div class="pgroup-info">
           <div class="pgroup-name">${name}</div>
           <div class="pgroup-price">${priceRange}</div>
@@ -285,12 +284,109 @@ function renderGroups() {
         ${totalQty>0?'<div class="cart-dot"></div>':''}
         <div class="pgroup-arrow">⌄</div>
       </div>
-      <div class="opt-panel" id="panel-${esc(name)}">
-        ${renderOptPanel(name, items)}
+      <div class="opt-panel" id="panel-${gid}">
+        ${isOpen ? renderOptPanel(name, items, gid) : ''}
       </div>
     </div>`;
   });
   document.getElementById('main').innerHTML = html;
+
+  // 이벤트 위임: 헤더 클릭
+  document.getElementById('main').addEventListener('click', handleMainClick, {once:true});
+  // 재등록 (renderGroups 재호출 시마다)
+  if (!mainClickBound) {
+    document.getElementById('main').addEventListener('click', handleMainClick);
+    mainClickBound = true;
+  }
+}
+
+let mainClickBound = false;
+function handleMainClick(e) {
+  const btn = e.target.closest('[data-action]');
+  const toggle = e.target.closest('[data-toggle]');
+
+  if (btn) {
+    e.stopPropagation();
+    const action = btn.dataset.action;
+    const name   = btn.dataset.name;
+    const gid    = btn.dataset.gid;
+
+    if (action==='color') {
+      selectedColors[name] = btn.dataset.color;
+      refreshPanelById(name, gid);
+    } else if (action==='color-only') {
+      const items = getGroupItems(name);
+      const p = items.find(p=>parseVariant(p.variant).color===btn.dataset.color);
+      if (!p||p.stock<=0) return;
+      setQtyDirect(p.id,(cart[p.id]||0)+1,p.stock);
+      refreshPanelById(name, gid);
+      updateCartBar();
+    } else if (action==='size') {
+      const color = getSelectedColor(name);
+      if (!color){toast('먼저 컬러를 선택하세요','error');return;}
+      const items = getGroupItems(name);
+      const p = items.find(p=>{const v=parseVariant(p.variant);return v.color===color&&v.size===btn.dataset.size;});
+      if (!p||p.stock<=0) return;
+      setQtyDirect(p.id,(cart[p.id]||0)+1,p.stock);
+      refreshPanelById(name, gid);
+      updateCartBar();
+    } else if (action==='qty') {
+      const p = allProducts.find(p=>p.id===btn.dataset.id);
+      if (!p) return;
+      setQtyDirect(p.id,(cart[p.id]||0)+parseInt(btn.dataset.delta),p.stock);
+      refreshPanelById(p.name, gid);
+      updateCartBar();
+    } else if (action==='remove') {
+      delete cart[btn.dataset.id];
+      const p = allProducts.find(p=>p.id===btn.dataset.id);
+      if (p) refreshPanelById(p.name, gid);
+      updateCartBar();
+    }
+    return;
+  }
+
+  if (toggle) {
+    const gid = toggle.dataset.toggle;
+    const grpEl = document.getElementById(gid);
+    if (!grpEl) return;
+    const name = grpEl.dataset.gname;
+    openGroup = openGroup===name ? null : name;
+    grpEl.classList.toggle('open', openGroup===name);
+    const panel = document.getElementById('panel-'+gid);
+    if (panel) {
+      if (openGroup===name) {
+        const items = getGroupItems(name);
+        panel.innerHTML = renderOptPanel(name, items, gid);
+        setTimeout(()=>grpEl.scrollIntoView({behavior:'smooth',block:'nearest'}),50);
+      } else {
+        panel.innerHTML = '';
+      }
+    }
+    const arrow = grpEl.querySelector('.pgroup-arrow');
+    if (arrow) arrow.style.transform = openGroup===name ? 'rotate(180deg)' : '';
+  }
+}
+
+function refreshPanelById(name, gid) {
+  const panel = document.getElementById('panel-'+gid);
+  const grp   = document.getElementById(gid);
+  if (!panel) return;
+  const items = getGroupItems(name);
+  panel.innerHTML = renderOptPanel(name, items, gid);
+  const totalQty = items.reduce((s,p)=>s+(cart[p.id]||0),0);
+  if (grp) {
+    grp.classList.toggle('has-selection', totalQty>0);
+    const meta = grp.querySelector('.pgroup-meta');
+    if (meta) {
+      const allSoldOut = items.every(p=>p.stock<=0);
+      meta.innerHTML = (allSoldOut?'<span class="sbadge sx">품절</span>':'')+
+        (totalQty>0?`<span style="font-size:12px;color:var(--accent);font-weight:700">${totalQty}개 담김</span>`:'');
+    }
+    const dot = grp.querySelector('.cart-dot');
+    const arrow = grp.querySelector('.pgroup-arrow');
+    if (totalQty>0&&!dot) arrow?.insertAdjacentHTML('beforebegin','<div class="cart-dot"></div>');
+    else if (totalQty===0&&dot) dot.remove();
+  }
 }
 
 function esc(s){return s.replace(/[^a-zA-Z0-9가-힣]/g,'_');}
@@ -304,7 +400,7 @@ function getPriceRange(items) {
     : krw(prices[0]);
 }
 
-function renderOptPanel(name, items) {
+function renderOptPanel(name, items, gid='') {
   // 컬러 목록 추출
   const colors = [...new Set(items.map(p=>parseVariant(p.variant).color).filter(Boolean))];
   // 사이즈 목록 추출
@@ -323,9 +419,9 @@ function renderOptPanel(name, items) {
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
           <div><span style="font-size:14px;font-weight:600">${p.name}</span> <span style="font-size:13px;color:var(--accent);font-weight:700">${krw(p.price)}</span> ${stockLabel(p)}</div>
           <div class="qty-stepper">
-            <button class="qty-btn" onclick="setQty('${p.id}',-1,event)" ${qty===0?'disabled':''}>−</button>
+            <button class="qty-btn" data-action="qty" data-id="${p.id}" data-delta="-1" data-gid="${gid}" ${qty===0?'disabled':''}>−</button>
             <div class="qty-num">${qty}</div>
-            <button class="qty-btn" onclick="setQty('${p.id}',1,event)" ${p.stock<=0||qty>=Math.min(CONFIG.maxQty,p.stock)?'disabled':''}>+</button>
+            <button class="qty-btn" data-action="qty" data-id="${p.id}" data-delta="1" data-gid="${gid}" ${p.stock<=0||qty>=Math.min(CONFIG.maxQty,p.stock)?'disabled':''}>+</button>
           </div>
         </div>
       </div>`;
@@ -340,7 +436,7 @@ function renderOptPanel(name, items) {
       const p = items.find(p=>parseVariant(p.variant).color===color);
       const qty = p ? (cart[p.id]||0) : 0;
       const out = !p || p.stock<=0;
-      html+=`<button class="opt-btn${out?' disabled soldout':''}" onclick="colorOnlySelect('${name}','${color}',event)">
+      html+=`<button class="opt-btn${out?' disabled soldout':''}" data-action="color-only" data-name="${name.replace(/"/g,'&quot;')}" data-color="${color}" data-gid="${gid}">
         ${color}${qty>0?` <span style="color:var(--accent)">×${qty}</span>`:''}
       </button>`;
     });
@@ -353,7 +449,7 @@ function renderOptPanel(name, items) {
   colors.forEach(color=>{
     const hasStock = items.some(p=>parseVariant(p.variant).color===color && p.stock>0);
     html+=`<button class="opt-btn${!hasStock?' disabled':''}${getSelectedColor(name)===color?' selected':''}" 
-      onclick="selectColor('${name}','${color}',event)">${color}</button>`;
+      data-action="color" data-name="${name.replace(/"/g,'&quot;')}" data-color="${color}" data-gid="${gid}">${color}</button>`;
   });
   html+='</div>';
 
@@ -370,7 +466,7 @@ function renderOptPanel(name, items) {
     const qty = p?(cart[p.id]||0):0;
     const out = !p||p.stock<=0;
     html+=`<button class="opt-btn${out?' disabled soldout':''}" 
-      onclick="selectSize('${name}','${size}',event)">
+      data-action="size" data-name="${name.replace(/"/g,'&quot;')}" data-size="${size}" data-gid="${gid}">
       ${size}${qty>0?`<span style="color:var(--accent);font-size:11px;margin-left:3px">×${qty}</span>`:''}
     </button>`;
   });
@@ -384,7 +480,7 @@ function renderOptPanel(name, items) {
       html+=`<div class="sel-item">
         <span class="sel-item-name">${parseVariant(p.variant).color} / ${parseVariant(p.variant).size} × ${cart[p.id]}</span>
         <span class="sel-item-price">${krw(p.price*cart[p.id])}</span>
-        <button class="sel-item-del" onclick="removeItem('${p.id}',event)">✕</button>
+        <button class="sel-item-del" data-action="remove" data-id="${p.id}" data-gid="${gid}">✕</button>
       </div>`;
     });
     html+='</div>';
@@ -397,97 +493,32 @@ function renderOptPanel(name, items) {
 const selectedColors = {};
 function getSelectedColor(name){return selectedColors[name]||'';}
 
-function selectColor(name, color, e){
-  e.stopPropagation();
-  selectedColors[name]=color;
-  refreshPanel(name);
-}
 
-function colorOnlySelect(name, color, e){
-  e.stopPropagation();
-  const items = getGroupItems(name);
-  const p = items.find(p=>parseVariant(p.variant).color===color);
-  if(!p||p.stock<=0) return;
-  setQtyDirect(p.id, (cart[p.id]||0)+1, p.stock);
-  refreshPanel(name);
-  updateCartBar();
-}
 
-function selectSize(name, size, e){
-  e.stopPropagation();
-  const color = getSelectedColor(name);
-  if(!color){toast('먼저 컬러를 선택하세요','error');return;}
-  const items = getGroupItems(name);
-  const p = items.find(p=>{const v=parseVariant(p.variant);return v.color===color&&v.size===size;});
-  if(!p||p.stock<=0) return;
-  setQtyDirect(p.id,(cart[p.id]||0)+1,p.stock);
-  refreshPanel(name);
-  updateCartBar();
-}
+
+
+
 
 function setQtyDirect(id, qty, maxStock){
   const clamped = Math.max(0,Math.min(qty,CONFIG.maxQty,maxStock));
   if(clamped===0) delete cart[id]; else cart[id]=clamped;
 }
 
-function setQty(id, delta, e){
-  e.stopPropagation();
-  const p=allProducts.find(p=>p.id===id);if(!p)return;
-  setQtyDirect(id,(cart[id]||0)+delta,p.stock);
-  const name=p.name;
-  refreshPanel(name);
-  updateCartBar();
-}
 
-function removeItem(id, e){
-  e.stopPropagation();
-  delete cart[id];
-  const p=allProducts.find(p=>p.id===id);
-  if(p) refreshPanel(p.name);
-  updateCartBar();
-}
+
+
 
 function getGroupItems(name){return allProducts.filter(p=>p.name===name);}
 
-function refreshPanel(name){
-  const items=getGroupItems(name);
-  const panel=document.getElementById('panel-'+esc(name));
-  const grp=document.getElementById('grp-'+esc(name));
-  if(!panel) return;
-  panel.innerHTML=renderOptPanel(name,items);
-  const totalQty=items.reduce((s,p)=>s+(cart[p.id]||0),0);
-  if(grp){
-    grp.classList.toggle('has-selection',totalQty>0);
-    // 뱃지 업데이트
-    const meta=grp.querySelector('.pgroup-meta');
-    if(meta){
-      const allSoldOut=items.every(p=>p.stock<=0);
-      meta.innerHTML=(allSoldOut?'<span class="sbadge sx">품절</span>':'')+
-        (totalQty>0?`<span style="font-size:12px;color:var(--accent);font-weight:700">${totalQty}개 담김</span>`:'');
-    }
-    const dot=grp.querySelector('.cart-dot');
-    const arrow=grp.querySelector('.pgroup-arrow');
-    if(totalQty>0&&!dot){arrow.insertAdjacentHTML('beforebegin','<div class="cart-dot"></div>');}
-    else if(totalQty===0&&dot){dot.remove();}
-  }
-}
 
-function toggleGroup(name){
-  openGroup = openGroup===name ? null : name;
-  renderGroups();
-  // 열린 그룹으로 스크롤
-  if(openGroup){
-    setTimeout(()=>{
-      const el=document.getElementById('grp-'+esc(name));
-      if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
-    },50);
-  }
-}
+
+
 
 function switchCat(key, el){
   currentCat=key; openGroup=null;
   document.querySelectorAll('.cat-tab').forEach(t=>t.classList.remove('on'));
   el.classList.add('on');
+  mainClickBound=false;
   renderGroups();
   window.scrollTo({top:0,behavior:'smooth'});
 }
