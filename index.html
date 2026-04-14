@@ -399,41 +399,37 @@
 <div id="toast"></div>
 
 <script>
-// ================================================================
-// ⚙️  설정 — 이 부분만 수정하면 됩니다
-// ================================================================
 const CONFIG = {
-  supabaseUrl:    'https://ynvzkldgalvasuapusrl.supabase.co', // Supabase 프로젝트 URL
-  supabaseKey:    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InludnprbGRnYWx2YXN1YXB1c3JsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNDA2MzksImV4cCI6MjA5MTcxNjYzOX0.MaZLGSzwoG9gBtsZ1mCvswXqpaRjhGLTdRxJsuFg5xM', // Supabase anon public key
-  adminPin:       '0831',                     // 관리자 PIN (4자리 숫자)
-  brandName:      'likalika',                 // 브랜드명
-  eventName:      '팝업스토어 사전주문',        // 고객 주문 페이지 제목
-  maxQtyPerItem:  5,                           // 품목당 최대 주문 수량
+  supabaseUrl:   'https://ynvzkldgalvasuapusrl.supabase.co',
+  supabaseKey:   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InludnprbGRnYWx2YXN1YXB1c3JsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNDA2MzksImV4cCI6MjA5MTcxNjYzOX0.MaZLGSzwoG9gBtsZ1mCvswXqpaRjhGLTdRxJsuFg5xM',
+  adminPin:      '0831',
+  brandName:     'likalika',
+  eventName:     '팝업스토어 사전주문',
+  maxQtyPerItem: 5,
 };
-// ================================================================
 
-// --- Init labels ---
-document.getElementById('order-brand').textContent   = CONFIG.brandName;
+// Init labels
+document.getElementById('order-brand').textContent    = CONFIG.brandName;
 document.getElementById('order-subtitle').textContent = CONFIG.eventName;
 document.getElementById('nav-brand').textContent      = CONFIG.brandName;
 document.title = CONFIG.brandName + ' 팝업스토어';
 
 const sb = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseKey);
 
-// --- State ---
 let S = {
   products: [],
   orders:   [],
-  cart:     {},       // { productId: qty }
+  cart:     {},
   channels: [],
+  barcodeMap: {},
   pinVerified: sessionStorage.getItem('pinOK') === '1',
   pinCb: null,
 };
 
 // ── Utils ──────────────────────────────────────────────
-function krw(n)   { return (n||0).toLocaleString('ko-KR') + '원'; }
+function krw(n) { return (n||0).toLocaleString('ko-KR') + '원'; }
 function fmtTime(d) {
-  return new Date(d).toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false});
+  return new Date(d).toLocaleString('ko-KR', {month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', hour12:false});
 }
 function stockClass(stock, initial) {
   if (stock <= 0) return 'out';
@@ -448,20 +444,21 @@ function stockBadge(stock, initial) {
   return '<span class="badge badge-red">마감 임박</span>';
 }
 function stockColor(cls) {
-  return {high:'var(--green)',medium:'var(--amber)',low:'var(--red)',out:'var(--gray)'}[cls];
+  return {high:'var(--green)', medium:'var(--amber)', low:'var(--red)', out:'var(--gray)'}[cls];
 }
 
 let toastTimer;
-function toast(msg, type='') {
-  const el = document.getElementById('toast');
+function toast(msg, type) {
+  type = type || '';
+  var el = document.getElementById('toast');
   el.textContent = msg;
   el.className = 'toast show' + (type ? ' ' + type : '');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.className = 'toast', 3200);
+  toastTimer = setTimeout(function() { el.className = 'toast'; }, 3200);
 }
 
 function clearChannels() {
-  S.channels.forEach(ch => { try { sb.removeChannel(ch); } catch(e){} });
+  S.channels.forEach(function(ch) { try { sb.removeChannel(ch); } catch(e){} });
   S.channels = [];
 }
 
@@ -469,7 +466,7 @@ function clearChannels() {
 function showPinModal(cb) {
   S.pinCb = cb;
   document.getElementById('pin-error').textContent = '';
-  [0,1,2,3].forEach(i => document.getElementById('pin-'+i).value = '');
+  [0,1,2,3].forEach(function(i) { document.getElementById('pin-'+i).value = ''; });
   document.getElementById('pin-modal').classList.remove('hidden');
   document.getElementById('pin-0').focus();
 }
@@ -478,44 +475,44 @@ function closePinModal() {
   window.location.hash = '#dashboard';
 }
 function submitPin() {
-  const pin = [0,1,2,3].map(i => document.getElementById('pin-'+i).value).join('');
+  var pin = [0,1,2,3].map(function(i) { return document.getElementById('pin-'+i).value; }).join('');
   if (pin === CONFIG.adminPin) {
     S.pinVerified = true;
-    sessionStorage.setItem('pinOK','1');
+    sessionStorage.setItem('pinOK', '1');
     document.getElementById('pin-modal').classList.add('hidden');
     if (S.pinCb) S.pinCb();
   } else {
     document.getElementById('pin-error').textContent = '잘못된 PIN입니다';
-    [0,1,2,3].forEach(i => document.getElementById('pin-'+i).value = '');
+    [0,1,2,3].forEach(function(i) { document.getElementById('pin-'+i).value = ''; });
     document.getElementById('pin-0').focus();
   }
 }
-[0,1,2,3].forEach(i => {
-  document.getElementById('pin-'+i).addEventListener('input', e => {
+[0,1,2,3].forEach(function(i) {
+  document.getElementById('pin-'+i).addEventListener('input', function(e) {
     if (e.target.value) {
       if (i < 3) document.getElementById('pin-'+(i+1)).focus();
       else submitPin();
     }
   });
-  document.getElementById('pin-'+i).addEventListener('keydown', e => {
+  document.getElementById('pin-'+i).addEventListener('keydown', function(e) {
     if (e.key === 'Backspace' && !e.target.value && i > 0)
       document.getElementById('pin-'+(i-1)).focus();
   });
 });
 
 // ── Router ────────────────────────────────────────────
-const PROTECTED = ['orders','inventory'];
+var PROTECTED = ['orders', 'inventory'];
 
 function navigate(view) {
   clearChannels();
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
-
-  const isAdmin = view !== 'order';
+  document.querySelectorAll('.view').forEach(function(v) { v.classList.remove('active'); });
+  document.querySelectorAll('.nav-links a').forEach(function(a) { a.classList.remove('active'); });
+  var isAdmin = view !== 'order';
   document.getElementById('admin-nav').classList.toggle('hidden', !isAdmin);
-  document.getElementById('view-' + view)?.classList.add('active');
-  document.getElementById('nav-' + view)?.classList.add('active');
-
+  var vEl = document.getElementById('view-' + view);
+  if (vEl) vEl.classList.add('active');
+  var nEl = document.getElementById('nav-' + view);
+  if (nEl) nEl.classList.add('active');
   if (view === 'order')     loadOrderView();
   if (view === 'dashboard') loadDashboard();
   if (view === 'orders')    loadOrders();
@@ -523,10 +520,10 @@ function navigate(view) {
 }
 
 function router() {
-  const hash = window.location.hash.slice(1) || 'dashboard';
-  if (PROTECTED.includes(hash) && !S.pinVerified) {
+  var hash = window.location.hash.slice(1) || 'dashboard';
+  if (PROTECTED.indexOf(hash) >= 0 && !S.pinVerified) {
     navigate('dashboard');
-    showPinModal(() => { window.location.hash = '#' + hash; });
+    showPinModal(function() { window.location.hash = '#' + hash; });
     return;
   }
   navigate(hash);
@@ -534,136 +531,116 @@ function router() {
 window.addEventListener('hashchange', router);
 
 // ── ORDER VIEW ────────────────────────────────────────
-async function loadOrderView() { await renderOrderForm(); }
+function loadOrderView() { renderOrderForm(); }
 
 async function renderOrderForm() {
-  const ct = document.getElementById('order-content');
+  var ct = document.getElementById('order-content');
   ct.innerHTML = '<div class="loading-state"><div class="spinner"></div><div>상품 불러오는 중...</div></div>';
   try {
-    const { data, error } = await sb
-      .from('products').select('*')
-      .eq('is_available', true)
-      .order('created_at');
-    if (error) throw error;
-    S.products = data || [];
+    var res = await sb.from('products').select('*').eq('is_available', true).order('created_at');
+    if (res.error) throw res.error;
+    S.products = res.data || [];
   } catch(e) {
-    ct.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>데이터 로딩 실패<br><small>${e.message}</small></p></div>`;
+    ct.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><p>' + e.message + '</p></div>';
     return;
   }
-
   if (!S.products.length) {
     ct.innerHTML = '<div class="empty-state"><div class="icon">📦</div><p>현재 판매 가능한 상품이 없습니다.</p></div>';
     return;
   }
-
-  ct.innerHTML = `
-    <div class="product-list" id="product-list"></div>
-    <div id="cart-section" style="display:none">
-      <div class="cart-summary" id="cart-summary"></div>
-      <div class="customer-form">
-        <div class="cart-title">주문자 정보</div>
-        <div class="form-group">
-          <label class="form-label">이름 *</label>
-          <input class="form-input" id="cname" type="text" placeholder="홍길동" autocomplete="name">
-        </div>
-        <div class="form-group" style="margin-bottom:0">
-          <label class="form-label">연락처 *</label>
-          <input class="form-input" id="cphone" type="tel" placeholder="010-0000-0000" inputmode="tel">
-        </div>
-      </div>
-      <div class="form-group mt-16">
-        <label class="form-label">메모 (선택)</label>
-        <input class="form-input" id="cnotes" type="text" placeholder="픽업 시간 등 남기실 말씀">
-      </div>
-      <button class="btn btn-primary btn-full" id="submit-btn"
-        style="height:54px;font-size:16px;margin-top:8px;border-radius:var(--radius)"
-        onclick="submitOrder()">주문하기</button>
-    </div>
-  `;
+  ct.innerHTML = '<div class="product-list" id="product-list"></div>' +
+    '<div id="cart-section" style="display:none">' +
+      '<div class="cart-summary" id="cart-summary"></div>' +
+      '<div class="customer-form">' +
+        '<div class="cart-title">주문자 정보</div>' +
+        '<div class="form-group"><label class="form-label">이름 *</label><input class="form-input" id="cname" type="text" placeholder="홍길동" autocomplete="name"></div>' +
+        '<div class="form-group" style="margin-bottom:0"><label class="form-label">연락처 *</label><input class="form-input" id="cphone" type="tel" placeholder="010-0000-0000" inputmode="tel"></div>' +
+      '</div>' +
+      '<div class="form-group mt-16"><label class="form-label">메모 (선택)</label><input class="form-input" id="cnotes" type="text" placeholder="픽업 시간 등 남기실 말씀"></div>' +
+      '<button class="btn btn-primary btn-full" id="submit-btn" style="height:54px;font-size:16px;margin-top:8px;border-radius:var(--radius)" onclick="submitOrder()">주문하기</button>' +
+    '</div>';
   S.cart = {};
   renderProductList();
 }
 
 function renderProductList() {
-  const ct = document.getElementById('product-list');
+  var ct = document.getElementById('product-list');
   if (!ct) return;
-  ct.innerHTML = S.products.map(p => {
-    const qty    = S.cart[p.id] || 0;
-    const maxQty = Math.min(CONFIG.maxQtyPerItem, p.stock);
-    const out    = p.stock <= 0;
-    return `
-      <div class="product-card ${out ? 'sold-out' : ''}">
-        <div class="product-info">
-          <div class="product-name">${p.name}</div>
-          ${p.variant ? `<div class="product-variant">${p.variant}</div>` : ''}
-          <div class="product-price">${krw(p.price)}</div>
-          <div style="margin-top:5px">${stockBadge(p.stock, p.initial_stock)}</div>
-        </div>
-        <div class="qty-stepper">
-          <button class="qty-btn" onclick="updateCart('${p.id}',-1)" ${qty===0?'disabled':''}>−</button>
-          <div class="qty-display">${qty}</div>
-          <button class="qty-btn" onclick="updateCart('${p.id}',1)"  ${out||qty>=maxQty?'disabled':''}>+</button>
-        </div>
-      </div>`;
+  ct.innerHTML = S.products.map(function(p) {
+    var qty    = S.cart[p.id] || 0;
+    var maxQty = Math.min(CONFIG.maxQtyPerItem, p.stock);
+    var out    = p.stock <= 0;
+    return '<div class="product-card ' + (out ? 'sold-out' : '') + '">' +
+      '<div class="product-info">' +
+        '<div class="product-name">' + p.name + '</div>' +
+        (p.variant ? '<div class="product-variant">' + p.variant + '</div>' : '') +
+        '<div class="product-price">' + krw(p.price) + '</div>' +
+        '<div style="margin-top:5px">' + stockBadge(p.stock, p.initial_stock) + '</div>' +
+      '</div>' +
+      '<div class="qty-stepper">' +
+        '<button class="qty-btn" onclick="updateCart(\'' + p.id + '\',-1)" ' + (qty===0?'disabled':'') + '>−</button>' +
+        '<div class="qty-display">' + qty + '</div>' +
+        '<button class="qty-btn" onclick="updateCart(\'' + p.id + '\',1)" ' + (out||qty>=maxQty?'disabled':'') + '>+</button>' +
+      '</div>' +
+    '</div>';
   }).join('');
 }
 
 function updateCart(id, delta) {
-  const p   = S.products.find(p => p.id === id);
+  var p = S.products.find(function(p) { return p.id === id; });
   if (!p) return;
-  const cur = S.cart[id] || 0;
-  const nxt = Math.max(0, Math.min(cur + delta, CONFIG.maxQtyPerItem, p.stock));
+  var cur = S.cart[id] || 0;
+  var nxt = Math.max(0, Math.min(cur + delta, CONFIG.maxQtyPerItem, p.stock));
   if (nxt === 0) delete S.cart[id]; else S.cart[id] = nxt;
   renderProductList();
   updateCartSection();
 }
 
 function updateCartSection() {
-  const items = Object.entries(S.cart).filter(([,q]) => q > 0);
-  const sec   = document.getElementById('cart-section');
-  const sum   = document.getElementById('cart-summary');
+  var items = Object.entries(S.cart).filter(function(e) { return e[1] > 0; });
+  var sec = document.getElementById('cart-section');
+  var sum = document.getElementById('cart-summary');
   if (!sec || !sum) return;
   if (!items.length) { sec.style.display = 'none'; return; }
   sec.style.display = 'block';
-  let total = 0;
-  const rows = items.map(([id,qty]) => {
-    const p = S.products.find(p => p.id === id);
+  var total = 0;
+  var rows = items.map(function(e) {
+    var id = e[0], qty = e[1];
+    var p = S.products.find(function(p) { return p.id === id; });
     if (!p) return '';
-    const sub = p.price * qty; total += sub;
-    return `<div class="cart-item">
-      <span>${p.name}${p.variant ? ' · ' + p.variant : ''} &times;${qty}</span>
-      <span class="font-bold">${krw(sub)}</span>
-    </div>`;
+    var sub = p.price * qty; total += sub;
+    return '<div class="cart-item">' +
+      '<span>' + p.name + (p.variant ? ' · ' + p.variant : '') + ' &times;' + qty + '</span>' +
+      '<span class="font-bold">' + krw(sub) + '</span>' +
+    '</div>';
   }).join('');
-  sum.innerHTML = `
-    <div class="cart-title">🛍 주문 내역</div>
-    ${rows}
-    <div class="cart-total"><span>합계</span><span class="total-amount">${krw(total)}</span></div>`;
+  sum.innerHTML = '<div class="cart-title">🛍 주문 내역</div>' + rows +
+    '<div class="cart-total"><span>합계</span><span class="total-amount">' + krw(total) + '</span></div>';
 }
 
 async function submitOrder() {
-  const name  = document.getElementById('cname')?.value?.trim();
-  const phone = document.getElementById('cphone')?.value?.trim();
-  const notes = document.getElementById('cnotes')?.value?.trim();
-  if (!name)  { toast('이름을 입력하세요','error'); return; }
-  if (!phone) { toast('연락처를 입력하세요','error'); return; }
-  const items = Object.entries(S.cart).filter(([,q])=>q>0).map(([id,qty]) => {
-    const p = S.products.find(p => p.id === id);
-    return { product_id: id, product_name: p.name, variant: p.variant||'', qty, unit_price: p.price };
+  var name  = (document.getElementById('cname') || {}).value || '';
+  var phone = (document.getElementById('cphone') || {}).value || '';
+  var notes = (document.getElementById('cnotes') || {}).value || '';
+  name = name.trim(); phone = phone.trim(); notes = notes.trim();
+  if (!name)  { toast('이름을 입력하세요', 'error'); return; }
+  if (!phone) { toast('연락처를 입력하세요', 'error'); return; }
+  var items = Object.entries(S.cart).filter(function(e) { return e[1] > 0; }).map(function(e) {
+    var id = e[0], qty = e[1];
+    var p = S.products.find(function(p) { return p.id === id; });
+    return { product_id: id, product_name: p.name, variant: p.variant||'', qty: qty, unit_price: p.price };
   });
-  if (!items.length) { toast('상품을 선택하세요','error'); return; }
-
-  const btn = document.getElementById('submit-btn');
+  if (!items.length) { toast('상품을 선택하세요', 'error'); return; }
+  var btn = document.getElementById('submit-btn');
   btn.disabled = true; btn.textContent = '처리 중...';
-
   try {
-    const { data, error } = await sb.rpc('place_order', {
+    var res = await sb.rpc('place_order', {
       p_customer_name: name, p_customer_phone: phone,
       p_items: items, p_notes: notes || null,
     });
-    if (error) throw error;
-    if (!data.success) throw new Error(data.error);
-    showOrderSuccess(name, items, data.total, data.order_id);
+    if (res.error) throw res.error;
+    if (!res.data.success) throw new Error(res.data.error);
+    showOrderSuccess(name, items, res.data.total, res.data.order_id);
     S.cart = {};
   } catch(e) {
     toast('주문 실패: ' + e.message, 'error');
@@ -672,179 +649,161 @@ async function submitOrder() {
 }
 
 function showOrderSuccess(name, items, total, orderId) {
-  const shortId = orderId.split('-')[0].toUpperCase();
-  document.getElementById('order-content').innerHTML = `
-    <div class="success-screen">
-      <div class="success-icon">✓</div>
-      <div class="success-title">주문 완료!</div>
-      <div class="success-subtitle">${name}님, 주문이 접수되었습니다</div>
-      <div class="order-receipt">
-        <div class="flex-between" style="margin-bottom:14px">
-          <span class="font-bold">주문번호</span>
-          <span style="font-family:monospace;color:var(--accent);font-weight:700">#${shortId}</span>
-        </div>
-        ${items.map(i=>`
-          <div class="cart-item">
-            <span>${i.product_name}${i.variant ? ' · ' + i.variant : ''} &times;${i.qty}</span>
-            <span class="font-bold">${krw(i.unit_price*i.qty)}</span>
-          </div>`).join('')}
-        <div class="cart-total"><span>총 결제금액</span><span class="total-amount">${krw(total)}</span></div>
-      </div>
-      <p style="color:var(--text3);font-size:13px;margin-top:16px">현장에서 결제 후 픽업하세요 🐾</p>
-      <button class="btn btn-secondary" style="margin-top:20px" onclick="renderOrderForm()">다른 주문하기</button>
-    </div>`;
+  var shortId = orderId.split('-')[0].toUpperCase();
+  document.getElementById('order-content').innerHTML =
+    '<div class="success-screen">' +
+      '<div class="success-icon">✓</div>' +
+      '<div class="success-title">주문 완료!</div>' +
+      '<div class="success-subtitle">' + name + '님, 주문이 접수되었습니다</div>' +
+      '<div class="order-receipt">' +
+        '<div class="flex-between" style="margin-bottom:14px">' +
+          '<span class="font-bold">주문번호</span>' +
+          '<span style="font-family:monospace;color:var(--accent);font-weight:700">#' + shortId + '</span>' +
+        '</div>' +
+        items.map(function(i) {
+          return '<div class="cart-item">' +
+            '<span>' + i.product_name + (i.variant ? ' · ' + i.variant : '') + ' &times;' + i.qty + '</span>' +
+            '<span class="font-bold">' + krw(i.unit_price * i.qty) + '</span>' +
+          '</div>';
+        }).join('') +
+        '<div class="cart-total"><span>총 결제금액</span><span class="total-amount">' + krw(total) + '</span></div>' +
+      '</div>' +
+      '<p style="color:var(--text3);font-size:13px;margin-top:16px">현장에서 결제 후 픽업하세요 🐾</p>' +
+      '<button class="btn btn-secondary" style="margin-top:20px" onclick="renderOrderForm()">다른 주문하기</button>' +
+    '</div>';
 }
 
 // ── DASHBOARD ─────────────────────────────────────────
 async function loadDashboard() {
   try {
-    const [pr, or] = await Promise.all([
+    var results = await Promise.all([
       sb.from('products').select('*').order('created_at'),
       sb.from('orders').select('id,total_amount,created_at'),
     ]);
-    S.products = pr.data || [];
-    S.orders   = or.data || [];
+    S.products = results[0].data || [];
+    S.orders   = results[1].data || [];
     renderDashboard();
     subscribeDashboard();
   } catch(e) {
     document.getElementById('dashboard-products').innerHTML =
-      `<div class="empty-state" style="grid-column:1/-1"><div class="icon">⚠️</div><p>${e.message}</p></div>`;
+      '<div class="empty-state" style="grid-column:1/-1"><div class="icon">⚠️</div><p>' + e.message + '</p></div>';
   }
 }
 
 function renderDashboard() {
-  const totalOrders  = S.orders.length;
-  const totalRevenue = S.orders.reduce((s,o) => s+(o.total_amount||0), 0);
-  const soldOut      = S.products.filter(p => p.stock<=0).length;
-  const available    = S.products.length - soldOut;
-
-  document.getElementById('dashboard-stats').innerHTML = `
-    <div class="stat-card">
-      <div class="stat-label">총 주문수</div>
-      <div class="stat-value">${totalOrders}<span style="font-size:16px;font-weight:400;color:var(--text2)"> 건</span></div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">총 매출</div>
-      <div class="stat-value" style="font-size:22px">${krw(totalRevenue)}</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">판매 가능 상품</div>
-      <div class="stat-value">${available}<span style="font-size:16px;font-weight:400;color:var(--text2)">/${S.products.length}</span></div>
-      <div class="stat-sub">종</div>
-    </div>`;
-
+  var totalOrders  = S.orders.length;
+  var totalRevenue = S.orders.reduce(function(s,o) { return s + (o.total_amount||0); }, 0);
+  var soldOut      = S.products.filter(function(p) { return p.stock <= 0; }).length;
+  var available    = S.products.length - soldOut;
+  document.getElementById('dashboard-stats').innerHTML =
+    '<div class="stat-card"><div class="stat-label">총 주문수</div><div class="stat-value">' + totalOrders + '<span style="font-size:16px;font-weight:400;color:var(--text2)"> 건</span></div></div>' +
+    '<div class="stat-card"><div class="stat-label">총 매출</div><div class="stat-value" style="font-size:22px">' + krw(totalRevenue) + '</div></div>' +
+    '<div class="stat-card"><div class="stat-label">판매 가능 상품</div><div class="stat-value">' + available + '<span style="font-size:16px;font-weight:400;color:var(--text2)">/' + S.products.length + '</span></div><div class="stat-sub">종</div></div>';
   if (!S.products.length) {
     document.getElementById('dashboard-products').innerHTML =
-      '<div class="empty-state" style="grid-column:1/-1"><div class="icon">📦</div><p>등록된 상품이 없습니다.<br>재고관리에서 상품을 추가하세요.</p></div>';
+      '<div class="empty-state" style="grid-column:1/-1"><div class="icon">📦</div><p>등록된 상품이 없습니다.</p></div>';
     return;
   }
-
   renderDashboardProducts(S.products);
   document.getElementById('last-updated').textContent = '방금 업데이트';
 }
 
 function renderDashboardProducts(products) {
-  const ct = document.getElementById('dashboard-products');
+  var ct = document.getElementById('dashboard-products');
   if (!products.length) {
     ct.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="icon">🔍</div><p>검색 결과가 없습니다.</p></div>';
     return;
   }
-  ct.innerHTML = products.map(p => {
-    const pct = p.initial_stock>0 ? Math.round(p.stock/p.initial_stock*100) : 0;
-    const cls = stockClass(p.stock, p.initial_stock);
-    return `
-      <div class="dp-card ${p.stock<=0?'sold-out':''}">
-        <div class="dp-name">${p.name}</div>
-        ${p.variant ? `<div class="dp-variant">${p.variant}</div>` : ''}
-        <div class="dp-stock-row">
-          <div class="dp-stock-num" style="color:${stockColor(cls)}">${p.stock}</div>
-          <div class="dp-stock-initial">/ ${p.initial_stock}</div>
-        </div>
-        <div class="stock-bar-wrap"><div class="stock-bar-fill ${cls}" style="width:${pct}%"></div></div>
-        <div style="margin-top:10px">${stockBadge(p.stock, p.initial_stock)}</div>
-      </div>`;
+  ct.innerHTML = products.map(function(p) {
+    var pct = p.initial_stock > 0 ? Math.round(p.stock / p.initial_stock * 100) : 0;
+    var cls = stockClass(p.stock, p.initial_stock);
+    return '<div class="dp-card ' + (p.stock<=0?'sold-out':'') + '">' +
+      '<div class="dp-name">' + p.name + '</div>' +
+      (p.variant ? '<div class="dp-variant">' + p.variant + '</div>' : '') +
+      '<div class="dp-stock-row">' +
+        '<div class="dp-stock-num" style="color:' + stockColor(cls) + '">' + p.stock + '</div>' +
+        '<div class="dp-stock-initial">/ ' + p.initial_stock + '</div>' +
+      '</div>' +
+      '<div class="stock-bar-wrap"><div class="stock-bar-fill ' + cls + '" style="width:' + pct + '%"></div></div>' +
+      '<div style="margin-top:10px">' + stockBadge(p.stock, p.initial_stock) + '</div>' +
+    '</div>';
   }).join('');
 }
 
 function filterDashboard(q) {
-  const kw = q.toLowerCase().trim();
+  var kw = q.toLowerCase().trim();
   if (!kw) { renderDashboardProducts(S.products); return; }
-  const filtered = S.products.filter(p =>
-    (p.name||'').toLowerCase().includes(kw) ||
-    (p.variant||'').toLowerCase().includes(kw) ||
-    (p.barcode||'').toLowerCase().includes(kw)
-  );
+  var filtered = S.products.filter(function(p) {
+    return (p.name||'').toLowerCase().includes(kw) ||
+           (p.variant||'').toLowerCase().includes(kw) ||
+           (p.barcode||'').toLowerCase().includes(kw);
+  });
   renderDashboardProducts(filtered);
 }
 
 function subscribeDashboard() {
-  const ch = sb.channel('dash')
-    .on('postgres_changes',{event:'*',schema:'public',table:'products'}, loadDashboard)
-    .on('postgres_changes',{event:'INSERT',schema:'public',table:'orders'}, loadDashboard)
+  var ch = sb.channel('dash')
+    .on('postgres_changes', {event:'*', schema:'public', table:'products'}, loadDashboard)
+    .on('postgres_changes', {event:'INSERT', schema:'public', table:'orders'}, loadDashboard)
     .subscribe();
   S.channels.push(ch);
 }
 
 // ── ORDERS ────────────────────────────────────────────
 async function loadOrders() {
-  const ct = document.getElementById('orders-content');
+  var ct = document.getElementById('orders-content');
   ct.innerHTML = '<div class="loading-state"><div class="spinner"></div><div>로딩 중...</div></div>';
-
-  const [ordersRes, productsRes] = await Promise.all([
-    sb.from('orders').select('*').order('created_at', {ascending:false}),
-    sb.from('products').select('id,name,variant,barcode'),
-  ]);
-
-  if (ordersRes.error) {
-    ct.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>${ordersRes.error.message}</p></div>`;
-    return;
+  try {
+    var results = await Promise.all([
+      sb.from('orders').select('*').order('created_at', {ascending:false}),
+      sb.from('products').select('id,name,variant,barcode'),
+    ]);
+    if (results[0].error) throw results[0].error;
+    S.barcodeMap = {};
+    (results[1].data||[]).forEach(function(p) { S.barcodeMap[p.id] = p.barcode || ''; });
+    S.orders = (results[0].data||[]).map(function(o) {
+      var items = Array.isArray(o.items) ? o.items : (typeof o.items==='string' ? JSON.parse(o.items||'[]') : []);
+      return Object.assign({}, o, {
+        items: items.map(function(i) {
+          return Object.assign({}, i, { barcode: S.barcodeMap[i.product_id] || '' });
+        })
+      });
+    });
+    var total = S.orders.reduce(function(s,o) { return s + o.total_amount; }, 0);
+    document.getElementById('orders-count-text').textContent = '전체 ' + S.orders.length + '건 · 합계 ' + krw(total);
+    renderOrdersList(S.orders);
+    var ch = sb.channel('orders-new')
+      .on('postgres_changes', {event:'INSERT', schema:'public', table:'orders'}, function() {
+        loadOrders();
+        toast('🎉 새 주문이 접수되었습니다!', 'success');
+      })
+      .subscribe();
+    S.channels.push(ch);
+  } catch(e) {
+    ct.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><p>' + e.message + '</p></div>';
   }
-
-  // 바코드 맵 생성 { product_id: barcode }
-  S.barcodeMap = {};
-  (productsRes.data||[]).forEach(p => { S.barcodeMap[p.id] = p.barcode||''; });
-
-  S.orders = (ordersRes.data||[]).map(o => ({
-    ...o,
-    items: (Array.isArray(o.items)?o.items:(typeof o.items==='string'?JSON.parse(o.items):[])).map(i=>({
-      ...i,
-      barcode: S.barcodeMap[i.product_id] || '',
-    }))
-  }));
-
-  const total = S.orders.reduce((s,o)=>s+o.total_amount,0);
-  document.getElementById('orders-count-text').textContent = `전체 ${S.orders.length}건 · 합계 ${krw(total)}`;
-  renderOrdersList(S.orders);
-
-  const ch = sb.channel('orders-new')
-    .on('postgres_changes',{event:'INSERT',schema:'public',table:'orders'}, () => {
-      loadOrders();
-      toast('🎉 새 주문이 접수되었습니다!','success');
-    })
-    .subscribe();
-  S.channels.push(ch);
 }
 
 function renderOrdersList(orders) {
-  const ct = document.getElementById('orders-content');
+  var ct = document.getElementById('orders-content');
   if (!orders.length) {
     ct.innerHTML = '<div class="empty-state"><div class="icon">📋</div><p>검색 결과가 없습니다.</p></div>';
     return;
   }
-  const rows = orders.map(function(o) {
-    const items = Array.isArray(o.items) ? o.items : (typeof o.items==='string' ? JSON.parse(o.items||'[]') : []);
-    const shortId = o.id.split('-')[0].toUpperCase();
-    const safeName = encodeURIComponent(o.customer_name);
-    let html = '<div class="order-card" id="order-' + o.id + '">';
+  ct.innerHTML = '<div class="orders-list">' + orders.map(function(o) {
+    var items = Array.isArray(o.items) ? o.items : (typeof o.items==='string' ? JSON.parse(o.items||'[]') : []);
+    var shortId = o.id.split('-')[0].toUpperCase();
+    var safeName = encodeURIComponent(o.customer_name);
+    var html = '<div class="order-card" id="order-' + o.id + '">';
     html += '<div class="order-card-header">';
     html +=   '<div>';
-    html +=     '<div class="order-customer">' + o.customer_name + ' <span style="font-size:11px;color:var(--text3);font-weight:400;font-family:monospace">#' + shortId + '</span></div>';
+    html +=     '<div class="order-customer">' + o.customer_name + ' <span style="font-size:11px;color:var(--text3);font-family:monospace">#' + shortId + '</span></div>';
     html +=     '<div class="order-meta">' + (o.customer_phone||'') + ' · ' + fmtTime(o.created_at) + '</div>';
     html +=   '</div>';
     html +=   '<div class="flex gap-6 items-center">';
     html +=     '<span class="badge badge-green">접수</span>';
-    html +=     '<button class="btn btn-ghost btn-sm" style="padding:4px 10px;font-size:12px" onclick="openEditOrderModal('' + o.id + '')">수정</button>';
-    html +=     '<button class="btn btn-ghost btn-sm" style="padding:4px 10px;font-size:12px;color:var(--red)" onclick="deleteOrder('' + o.id + '',decodeURIComponent('' + safeName + ''))">삭제</button>';
+    html +=     '<button class="btn btn-ghost btn-sm" style="padding:4px 10px;font-size:12px" onclick="openEditOrderModal(\'' + o.id + '\')">수정</button>';
+    html +=     '<button class="btn btn-ghost btn-sm" style="padding:4px 10px;font-size:12px;color:var(--red)" onclick="deleteOrder(\'' + o.id + '\',decodeURIComponent(\'' + safeName + '\'))">삭제</button>';
     html +=   '</div>';
     html += '</div>';
     html += '<div>';
@@ -862,177 +821,23 @@ function renderOrdersList(orders) {
     html += '<div class="order-total-row"><span>합계</span><span class="text-accent">' + krw(o.total_amount) + '</span></div>';
     html += '</div>';
     return html;
-  });
-  ct.innerHTML = '<div class="orders-list">' + rows.join('') + '</div>';
-}
-
-// ── INVENTORY ─────────────────────────────────────────
-async function loadInventory() {
-  const ct = document.getElementById('inventory-content');
-  ct.innerHTML = '<div class="loading-state"><div class="spinner"></div><div>로딩 중...</div></div>';
-
-  const { data, error } = await sb
-    .from('products').select('*').order('created_at');
-
-  if (error) {
-    ct.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>${error.message}</p></div>`;
-    return;
-  }
-  S.products = data || [];
-
-  if (!S.products.length) {
-    ct.innerHTML = `<div class="empty-state"><div class="icon">📦</div><p>등록된 상품이 없습니다.<br>위 버튼을 눌러 상품을 추가하세요.</p></div>`;
-    return;
-  }
-
-  renderInventoryTable(S.products);
-}
-
-function renderInventoryTable(products) {
-  const ct = document.getElementById('inventory-content');
-  if (!products.length) {
-    ct.innerHTML = `<div class="empty-state"><div class="icon">🔍</div><p>검색 결과가 없습니다.</p></div>`;
-    return;
-  }
-  ct.innerHTML = `
-    <div style="overflow-x:auto">
-    <table class="product-table">
-      <thead><tr>
-        <th>바코드</th><th>상품명</th><th>옵션</th><th>판매가</th>
-        <th>현재 재고</th><th>초기 재고</th><th>판매율</th>
-        <th>판매 여부</th><th>액션</th>
-      </tr></thead>
-      <tbody>
-        ${products.map(p => {
-          const sold = p.initial_stock > 0 ? Math.round((p.initial_stock-p.stock)/p.initial_stock*100) : 0;
-          const soldCls = sold>=80?'badge-red':sold>=50?'badge-amber':'badge-green';
-          return `
-            <tr>
-              <td style="font-size:12px;color:var(--text3)">${p.barcode||'—'}</td>
-              <td><strong>${p.name}</strong></td>
-              <td>${p.variant||'—'}</td>
-              <td>${krw(p.price)}</td>
-              <td>
-                <input class="stock-edit" type="number" min="0" value="${p.stock}"
-                  onchange="updateStock('${p.id}',this.value)">
-              </td>
-              <td>${p.initial_stock}</td>
-              <td><span class="badge ${soldCls}">${sold}%</span></td>
-              <td>
-                <label class="toggle">
-                  <input type="checkbox" ${p.is_available?'checked':''}
-                    onchange="toggleAvail('${p.id}',this.checked)">
-                  <span class="toggle-slider"></span>
-                </label>
-              </td>
-              <td>
-                <div class="flex gap-6">
-                  <button class="btn btn-ghost btn-sm" onclick="openProductModal('${p.id}')">수정</button>
-                  <button class="btn btn-ghost btn-sm" style="color:var(--red)"
-                    onclick="deleteProduct('${p.id}','${p.name.replace(/'/g,"\\'")}')">삭제</button>
-                </div>
-              </td>
-            </tr>`;
-        }).join('')}
-      </tbody>
-    </table></div>`;
-}
-
-async function updateStock(id, val) {
-  const stock = parseInt(val);
-  if (isNaN(stock)||stock<0) return;
-  const { error } = await sb.from('products').update({stock}).eq('id',id);
-  error ? toast('재고 업데이트 실패: '+error.message,'error')
-        : toast('재고가 업데이트되었습니다','success');
-}
-
-async function toggleAvail(id, val) {
-  const { error } = await sb.from('products').update({is_available:val}).eq('id',id);
-  if (error) { toast('업데이트 실패','error'); loadInventory(); }
-  else toast(val ? '판매 활성화' : '판매 중지');
-}
-
-function openProductModal(id = null) {
-  const modal = document.getElementById('product-modal');
-  const title = document.getElementById('pmodal-title');
-  if (id) {
-    const p = S.products.find(p=>p.id===id);
-    if (!p) return;
-    title.textContent = '상품 수정';
-    document.getElementById('pmodal-id').value      = p.id;
-    document.getElementById('pmodal-name').value    = p.name;
-    document.getElementById('pmodal-variant').value = p.variant||'';
-    document.getElementById('pmodal-price').value   = p.price;
-    document.getElementById('pmodal-stock').value   = p.stock;
-  } else {
-    title.textContent = '상품 추가';
-    ['pmodal-id','pmodal-name','pmodal-variant','pmodal-price','pmodal-stock']
-      .forEach(i => document.getElementById(i).value = '');
-  }
-  modal.classList.remove('hidden');
-}
-function closeProductModal() { document.getElementById('product-modal').classList.add('hidden'); }
-
-async function saveProduct() {
-  const id      = document.getElementById('pmodal-id').value;
-  const name    = document.getElementById('pmodal-name').value.trim();
-  const variant = document.getElementById('pmodal-variant').value.trim();
-  const price   = parseInt(document.getElementById('pmodal-price').value);
-  const stock   = parseInt(document.getElementById('pmodal-stock').value);
-  if (!name)              { toast('상품명을 입력하세요','error'); return; }
-  if (!price||price<=0)   { toast('올바른 가격을 입력하세요','error'); return; }
-  if (isNaN(stock)||stock<0) { toast('올바른 재고를 입력하세요','error'); return; }
-
-  if (id) {
-    const { error } = await sb.from('products').update({name,variant:variant||null,price,stock}).eq('id',id);
-    if (error) { toast('수정 실패: '+error.message,'error'); return; }
-    toast('상품이 수정되었습니다','success');
-  } else {
-    const { error } = await sb.from('products')
-      .insert({name, variant:variant||null, price, stock, initial_stock:stock, is_available:true});
-    if (error) { toast('추가 실패: '+error.message,'error'); return; }
-    toast('상품이 추가되었습니다','success');
-  }
-  closeProductModal();
-  loadInventory();
-}
-
-async function deleteProduct(id, name) {
-  if (!confirm(`"${name}" 을(를) 삭제하시겠습니까?`)) return;
-  const { error } = await sb.from('products').delete().eq('id',id);
-  error ? toast('삭제 실패','error') : (toast('삭제되었습니다'), loadInventory());
-}
-
-
-// ── SEARCH / FILTER ───────────────────────────────────
-function filterInventory(q) {
-  if (!q) { loadInventory(); return; }
-  const kw = q.toLowerCase();
-  const filtered = S.products.filter(p =>
-    (p.name||'').toLowerCase().includes(kw) ||
-    (p.variant||'').toLowerCase().includes(kw) ||
-    (p.barcode||'').toLowerCase().includes(kw)
-  );
-  renderInventoryTable(filtered);
+  }).join('') + '</div>';
 }
 
 function filterOrders(q) {
-  const kw = (q||'').toLowerCase().trim();
-  const from = document.getElementById('date-from')?.value;
-  const to   = document.getElementById('date-to')?.value;
-
-  let filtered = S.orders;
-
-  if (from) filtered = filtered.filter(o => o.created_at >= from);
-  if (to)   filtered = filtered.filter(o => o.created_at <= to + 'T23:59:59');
-
+  var kw = (q||'').toLowerCase().trim();
+  var from = (document.getElementById('date-from') || {}).value || '';
+  var to   = (document.getElementById('date-to') || {}).value || '';
+  var filtered = S.orders;
+  if (from) filtered = filtered.filter(function(o) { return o.created_at >= from; });
+  if (to)   filtered = filtered.filter(function(o) { return o.created_at <= to + 'T23:59:59'; });
   if (kw) {
-    filtered = filtered.filter(o => {
-      const items = Array.isArray(o.items) ? o.items : (typeof o.items === 'string' ? JSON.parse(o.items) : []);
-      const itemMatch = items.some(i =>
-        (i.product_name||'').toLowerCase().includes(kw) ||
-        (i.barcode||'').toLowerCase().includes(kw)
-      );
+    filtered = filtered.filter(function(o) {
+      var items = Array.isArray(o.items) ? o.items : [];
+      var itemMatch = items.some(function(i) {
+        return (i.product_name||'').toLowerCase().includes(kw) ||
+               (i.barcode||'').toLowerCase().includes(kw);
+      });
       return (o.customer_name||'').toLowerCase().includes(kw) ||
              (o.customer_phone||'').toLowerCase().includes(kw) ||
              itemMatch;
@@ -1042,173 +847,258 @@ function filterOrders(q) {
 }
 
 function clearDateFilter() {
-  document.getElementById('date-from').value = '';
-  document.getElementById('date-to').value = '';
-  filterOrders(document.getElementById('orders-search').value);
+  var df = document.getElementById('date-from');
+  var dt = document.getElementById('date-to');
+  if (df) df.value = '';
+  if (dt) dt.value = '';
+  filterOrders((document.getElementById('orders-search') || {}).value || '');
 }
 
-// ── 주문 삭제 ──────────────────────────────────────────
 async function deleteOrder(id, name) {
-  if (!confirm(`"${name}" 주문을 삭제하시겠습니까?
-재고는 자동으로 복구되지 않습니다.`)) return;
-  const { error } = await sb.from('orders').delete().eq('id', id);
-  if (error) { toast('삭제 실패: ' + error.message, 'error'); return; }
+  if (!confirm('"' + name + '" 주문을 삭제하시겠습니까?\n재고는 자동으로 복구되지 않습니다.')) return;
+  var res = await sb.from('orders').delete().eq('id', id);
+  if (res.error) { toast('삭제 실패: ' + res.error.message, 'error'); return; }
   toast('주문이 삭제되었습니다');
-  S.orders = S.orders.filter(o => o.id !== id);
+  S.orders = S.orders.filter(function(o) { return o.id !== id; });
   renderOrdersList(S.orders);
 }
 
-// ── 주문 수정 모달 ─────────────────────────────────────
 function openEditOrderModal(id) {
-  const o = S.orders.find(o => o.id === id);
+  var o = S.orders.find(function(o) { return o.id === id; });
   if (!o) return;
-  const items = Array.isArray(o.items) ? o.items : JSON.parse(o.items||'[]');
-
-  document.getElementById('product-modal').classList.add('hidden');
-  const modal = document.createElement('div');
+  var existing = document.getElementById('edit-order-modal');
+  if (existing) existing.remove();
+  var modal = document.createElement('div');
   modal.id = 'edit-order-modal';
   modal.className = 'modal-overlay';
-  modal.innerHTML = `
-    <div class="modal" style="max-width:520px">
-      <div class="modal-title">주문 수정</div>
-      <div class="form-group">
-        <label class="form-label">이름</label>
-        <input class="form-input" id="eo-name" value="${o.customer_name}">
-      </div>
-      <div class="form-group">
-        <label class="form-label">연락처</label>
-        <input class="form-input" id="eo-phone" value="${o.customer_phone||''}">
-      </div>
-      <div class="form-group">
-        <label class="form-label">메모 / 배송지</label>
-        <input class="form-input" id="eo-notes" value="${o.notes||''}">
-      </div>
-      <div class="form-group">
-        <label class="form-label">주문 상태</label>
-        <select class="form-input" id="eo-status">
-          <option value="confirmed" ${o.status==='confirmed'?'selected':''}>접수</option>
-          <option value="completed" ${o.status==='completed'?'selected':''}>완료</option>
-          <option value="cancelled" ${o.status==='cancelled'?'selected':''}>취소</option>
-        </select>
-      </div>
-      <div class="modal-actions">
-        <button class="btn btn-secondary" onclick="document.getElementById('edit-order-modal').remove()">취소</button>
-        <button class="btn btn-primary" onclick="saveOrderEdit('${id}')">저장</button>
-      </div>
-    </div>`;
+  modal.innerHTML =
+    '<div class="modal" style="max-width:520px">' +
+      '<div class="modal-title">주문 수정</div>' +
+      '<div class="form-group"><label class="form-label">이름</label><input class="form-input" id="eo-name" value="' + (o.customer_name||'') + '"></div>' +
+      '<div class="form-group"><label class="form-label">연락처</label><input class="form-input" id="eo-phone" value="' + (o.customer_phone||'') + '"></div>' +
+      '<div class="form-group"><label class="form-label">메모 / 배송지</label><input class="form-input" id="eo-notes" value="' + (o.notes||'') + '"></div>' +
+      '<div class="form-group"><label class="form-label">주문 상태</label>' +
+        '<select class="form-input" id="eo-status">' +
+          '<option value="confirmed"' + (o.status==='confirmed'?' selected':'') + '>접수</option>' +
+          '<option value="completed"' + (o.status==='completed'?' selected':'') + '>완료</option>' +
+          '<option value="cancelled"' + (o.status==='cancelled'?' selected':'') + '>취소</option>' +
+        '</select></div>' +
+      '<div class="modal-actions">' +
+        '<button class="btn btn-secondary" onclick="document.getElementById(\'edit-order-modal\').remove()">취소</button>' +
+        '<button class="btn btn-primary" onclick="saveOrderEdit(\'' + id + '\')">저장</button>' +
+      '</div>' +
+    '</div>';
   document.body.appendChild(modal);
 }
 
 async function saveOrderEdit(id) {
-  const name  = document.getElementById('eo-name').value.trim();
-  const phone = document.getElementById('eo-phone').value.trim();
-  const notes = document.getElementById('eo-notes').value.trim();
-  const status= document.getElementById('eo-status').value;
+  var name   = (document.getElementById('eo-name') || {}).value || '';
+  var phone  = (document.getElementById('eo-phone') || {}).value || '';
+  var notes  = (document.getElementById('eo-notes') || {}).value || '';
+  var status = (document.getElementById('eo-status') || {}).value || 'confirmed';
+  name = name.trim();
   if (!name) { toast('이름을 입력하세요', 'error'); return; }
-  const { error } = await sb.from('orders').update({
-    customer_name: name, customer_phone: phone, notes, status
-  }).eq('id', id);
-  if (error) { toast('수정 실패: ' + error.message, 'error'); return; }
+  var res = await sb.from('orders').update({customer_name:name, customer_phone:phone, notes:notes, status:status}).eq('id', id);
+  if (res.error) { toast('수정 실패: ' + res.error.message, 'error'); return; }
   toast('주문이 수정되었습니다', 'success');
-  document.getElementById('edit-order-modal')?.remove();
+  var m = document.getElementById('edit-order-modal');
+  if (m) m.remove();
   loadOrders();
 }
 
-// ── 엑셀 다운로드 ──────────────────────────────────────
 function exportOrdersExcel() {
-  const from = document.getElementById('date-from')?.value;
-  const to   = document.getElementById('date-to')?.value;
-
-  let filtered = S.orders;
-  if (from) filtered = filtered.filter(o => o.created_at >= from);
-  if (to)   filtered = filtered.filter(o => o.created_at <= to + 'T23:59:59');
-
+  var from = (document.getElementById('date-from') || {}).value || '';
+  var to   = (document.getElementById('date-to') || {}).value || '';
+  var filtered = S.orders;
+  if (from) filtered = filtered.filter(function(o) { return o.created_at >= from; });
+  if (to)   filtered = filtered.filter(function(o) { return o.created_at <= to + 'T23:59:59'; });
   if (!filtered.length) { toast('다운로드할 주문이 없습니다', 'error'); return; }
-
-  // CSV 생성 (BOM 포함으로 한글 깨짐 방지)
-  const header = ['주문일자','주문번호','주문자','연락처','배송지','바코드','상품명','컬러','사이즈','수량','단가','금액'];
-  const rows = [];
-  filtered.forEach(o => {
-    const items = Array.isArray(o.items) ? o.items : JSON.parse(o.items||'[]');
-    const dt = new Date(o.created_at).toLocaleString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false});
-    const shortId = o.id.split('-')[0].toUpperCase();
-    const address = o.notes || '';
-    items.forEach(i => {
-      // 컬러/사이즈 분리
-      const variant = i.variant || '';
-      const parts = variant.split('_');
-      const sizePattern = /^(XS|S\/M|S|SM|M|L|XL|2XL|3XL|4XL)$/i;
-      let color='', size='';
-      if (parts.length > 1 && sizePattern.test(parts[parts.length-1])) {
+  var header = ['주문일자','주문번호','주문자','연락처','배송지','바코드','상품명','컬러','사이즈','수량','단가','금액'];
+  var rows = [];
+  filtered.forEach(function(o) {
+    var items = Array.isArray(o.items) ? o.items : [];
+    var dt = new Date(o.created_at).toLocaleString('ko-KR', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false});
+    var shortId = o.id.split('-')[0].toUpperCase();
+    var address = o.notes || '';
+    items.forEach(function(i) {
+      var variant = i.variant || '';
+      var parts = variant.split('_');
+      var color = '', size = '';
+      if (parts.length > 1 && /^(XS|SM|S|M|L|XL|2XL|3XL|4XL)$/i.test(parts[parts.length-1])) {
         size  = parts[parts.length-1];
         color = parts.slice(0,-1).join('_');
       } else {
         color = variant;
       }
-      rows.push([
-        dt, shortId,
-        o.customer_name, o.customer_phone||'',
-        address,
-        i.barcode||'', i.product_name,
-        color, size,
-        i.qty, i.unit_price, i.unit_price*i.qty
-      ]);
+      rows.push([dt, shortId, o.customer_name, o.customer_phone||'', address, i.barcode||'', i.product_name, color, size, i.qty, i.unit_price, i.unit_price*i.qty]);
     });
   });
-
-  const csvContent = '\uFEFF' + [header, ...rows]
-    .map(r => r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(','))
-    .join('\n');
-
-  const blob = new Blob([csvContent], {type:'text/csv;charset=utf-8'});
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  const dateStr = from && to ? `${from}_${to}` : from || to || new Date().toISOString().slice(0,10);
+  var csvContent = '\uFEFF' + [header].concat(rows).map(function(r) {
+    return r.map(function(v) { return '"' + String(v).replace(/"/g, '""') + '"'; }).join(',');
+  }).join('\n');
+  var blob = new Blob([csvContent], {type:'text/csv;charset=utf-8'});
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  var dateStr = from && to ? from+'_'+to : from || to || new Date().toISOString().slice(0,10);
   a.href = url;
-  a.download = `주문내역_${dateStr}.csv`;
+  a.download = '주문내역_' + dateStr + '.csv';
   a.click();
   URL.revokeObjectURL(url);
-  toast(`${rows.length}행 다운로드 완료`, 'success');
+  toast(rows.length + '행 다운로드 완료', 'success');
+}
+
+// ── INVENTORY ─────────────────────────────────────────
+async function loadInventory() {
+  var ct = document.getElementById('inventory-content');
+  ct.innerHTML = '<div class="loading-state"><div class="spinner"></div><div>로딩 중...</div></div>';
+  var res = await sb.from('products').select('*').order('created_at');
+  if (res.error) {
+    ct.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><p>' + res.error.message + '</p></div>';
+    return;
+  }
+  S.products = res.data || [];
+  if (!S.products.length) {
+    ct.innerHTML = '<div class="empty-state"><div class="icon">📦</div><p>등록된 상품이 없습니다.<br>위 버튼을 눌러 상품을 추가하세요.</p></div>';
+    return;
+  }
+  renderInventoryTable(S.products);
+}
+
+function renderInventoryTable(products) {
+  var ct = document.getElementById('inventory-content');
+  if (!products.length) {
+    ct.innerHTML = '<div class="empty-state"><div class="icon">🔍</div><p>검색 결과가 없습니다.</p></div>';
+    return;
+  }
+  var rows = products.map(function(p) {
+    var sold    = p.initial_stock > 0 ? Math.round((p.initial_stock-p.stock)/p.initial_stock*100) : 0;
+    var soldCls = sold>=80?'badge-red':sold>=50?'badge-amber':'badge-green';
+    return '<tr>' +
+      '<td style="font-size:12px;color:var(--text3)">' + (p.barcode||'—') + '</td>' +
+      '<td><strong>' + p.name + '</strong></td>' +
+      '<td>' + (p.variant||'—') + '</td>' +
+      '<td>' + krw(p.price) + '</td>' +
+      '<td><input class="stock-edit" type="number" min="0" value="' + p.stock + '" onchange="updateStock(\'' + p.id + '\',this.value)"></td>' +
+      '<td>' + p.initial_stock + '</td>' +
+      '<td><span class="badge ' + soldCls + '">' + sold + '%</span></td>' +
+      '<td><label class="toggle"><input type="checkbox" ' + (p.is_available?'checked':'') + ' onchange="toggleAvail(\'' + p.id + '\',this.checked)"><span class="toggle-slider"></span></label></td>' +
+      '<td><div class="flex gap-6">' +
+        '<button class="btn btn-ghost btn-sm" onclick="openProductModal(\'' + p.id + '\')">수정</button>' +
+        '<button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteProduct(\'' + p.id + '\',\'' + p.name.replace(/'/g,"\\'") + '\')">삭제</button>' +
+      '</div></td>' +
+    '</tr>';
+  }).join('');
+  ct.innerHTML = '<div style="overflow-x:auto"><table class="product-table"><thead><tr>' +
+    '<th>바코드</th><th>상품명</th><th>옵션</th><th>판매가</th><th>현재 재고</th><th>초기 재고</th><th>판매율</th><th>판매 여부</th><th>액션</th>' +
+    '</tr></thead><tbody>' + rows + '</tbody></table></div>';
+}
+
+function filterInventory(q) {
+  var kw = q.toLowerCase();
+  if (!kw) { renderInventoryTable(S.products); return; }
+  var filtered = S.products.filter(function(p) {
+    return (p.name||'').toLowerCase().includes(kw) ||
+           (p.variant||'').toLowerCase().includes(kw) ||
+           (p.barcode||'').toLowerCase().includes(kw);
+  });
+  renderInventoryTable(filtered);
+}
+
+async function updateStock(id, val) {
+  var stock = parseInt(val);
+  if (isNaN(stock) || stock < 0) return;
+  var res = await sb.from('products').update({stock:stock}).eq('id', id);
+  if (res.error) toast('재고 업데이트 실패: ' + res.error.message, 'error');
+  else toast('재고가 업데이트되었습니다', 'success');
+}
+
+async function toggleAvail(id, val) {
+  var res = await sb.from('products').update({is_available:val}).eq('id', id);
+  if (res.error) { toast('업데이트 실패', 'error'); loadInventory(); }
+  else toast(val ? '판매 활성화' : '판매 중지');
+}
+
+function openProductModal(id) {
+  var modal = document.getElementById('product-modal');
+  var title = document.getElementById('pmodal-title');
+  if (id) {
+    var p = S.products.find(function(p) { return p.id === id; });
+    if (!p) return;
+    title.textContent = '상품 수정';
+    document.getElementById('pmodal-id').value      = p.id;
+    document.getElementById('pmodal-name').value    = p.name;
+    document.getElementById('pmodal-variant').value = p.variant || '';
+    document.getElementById('pmodal-price').value   = p.price;
+    document.getElementById('pmodal-stock').value   = p.stock;
+  } else {
+    title.textContent = '상품 추가';
+    ['pmodal-id','pmodal-name','pmodal-variant','pmodal-price','pmodal-stock'].forEach(function(i) {
+      document.getElementById(i).value = '';
+    });
+  }
+  modal.classList.remove('hidden');
+}
+function closeProductModal() { document.getElementById('product-modal').classList.add('hidden'); }
+
+async function saveProduct() {
+  var id      = document.getElementById('pmodal-id').value;
+  var name    = document.getElementById('pmodal-name').value.trim();
+  var variant = document.getElementById('pmodal-variant').value.trim();
+  var price   = parseInt(document.getElementById('pmodal-price').value);
+  var stock   = parseInt(document.getElementById('pmodal-stock').value);
+  if (!name)             { toast('상품명을 입력하세요', 'error'); return; }
+  if (!price || price<=0){ toast('올바른 가격을 입력하세요', 'error'); return; }
+  if (isNaN(stock)||stock<0){ toast('올바른 재고를 입력하세요', 'error'); return; }
+  var res;
+  if (id) {
+    res = await sb.from('products').update({name:name, variant:variant||null, price:price, stock:stock}).eq('id', id);
+    if (res.error) { toast('수정 실패: ' + res.error.message, 'error'); return; }
+    toast('상품이 수정되었습니다', 'success');
+  } else {
+    res = await sb.from('products').insert({name:name, variant:variant||null, price:price, stock:stock, initial_stock:stock, is_available:true});
+    if (res.error) { toast('추가 실패: ' + res.error.message, 'error'); return; }
+    toast('상품이 추가되었습니다', 'success');
+  }
+  closeProductModal();
+  loadInventory();
+}
+
+async function deleteProduct(id, name) {
+  if (!confirm('"' + name + '" 을(를) 삭제하시겠습니까?')) return;
+  var res = await sb.from('products').delete().eq('id', id);
+  if (res.error) toast('삭제 실패', 'error');
+  else { toast('삭제되었습니다'); loadInventory(); }
 }
 
 // ── EXCEL UPLOAD ───────────────────────────────────────
-let uploadData = [];
+var uploadData = [];
 
 function handleExcelUpload(input) {
-  const file = input.files[0];
+  var file = input.files[0];
   if (!file) return;
-  const reader = new FileReader();
+  var reader = new FileReader();
   reader.onload = function(e) {
     try {
-      const wb = XLSX.read(e.target.result, {type:'array'});
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
-      // 첫 행(헤더) 제외, 빈 행 제거
-      // 컬럼 자동 감지: 바코드 컬럼 있으면 5열, 없으면 4열
-      // 헤더 행 건너뛰고 항상 5열 형식으로 읽기
-      // 컬럼: 바코드(0) | 상품명(1) | 옵션(2) | 판매가(3) | 재고(4)
-      uploadData = rows.slice(1).filter(r => r[1]).map(r => ({
-        barcode: String(r[0]||'').trim() || null,
-        name:    String(r[1]||'').trim(),
-        variant: String(r[2]||'').trim().replace('—','') || null,
-        price:   parseInt(r[3]) || 0,
-        stock:   parseInt(r[4]) || 0,
-      })).filter(r => r.name);
-
-      if (!uploadData.length) { toast('상품 데이터가 없습니다','error'); return; }
-
-      // 미리보기 렌더
-      document.getElementById('upload-count').textContent =
-        `총 ${uploadData.length}개 상품 · 가격 미입력 항목은 0원으로 등록됩니다`;
-      const tbody = document.getElementById('upload-tbody');
-      tbody.innerHTML = uploadData.map(p => `
-        <tr>
-          <td>${p.barcode||'—'}</td>
-          <td>${p.name}</td>
-          <td>${p.variant||'—'}</td>
-          <td style="text-align:center">${p.price ? p.price.toLocaleString()+'원' : '<span style="color:var(--text3)">미입력</span>'}</td>
-          <td style="text-align:center">${p.stock}</td>
-        </tr>`).join('');
+      var wb   = XLSX.read(e.target.result, {type:'array'});
+      var ws   = wb.Sheets[wb.SheetNames[0]];
+      var rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+      var headerRow = rows[0] || [];
+      var hasBarcodeCol = String(headerRow[0]||'').trim() === '바코드';
+      uploadData = rows.slice(1).filter(function(r) { return r[1]; }).map(function(r) {
+        if (hasBarcodeCol) {
+          return { barcode:String(r[0]||'').trim()||null, name:String(r[1]||'').trim(), variant:String(r[2]||'').trim().replace('—','')||null, price:parseInt(r[3])||0, stock:parseInt(r[4])||0 };
+        } else {
+          return { barcode:null, name:String(r[0]||'').trim(), variant:String(r[1]||'').trim().replace('—','')||null, price:parseInt(r[2])||0, stock:parseInt(r[3])||0 };
+        }
+      }).filter(function(r) { return r.name; });
+      if (!uploadData.length) { toast('상품 데이터가 없습니다', 'error'); return; }
+      document.getElementById('upload-count').textContent = '총 ' + uploadData.length + '개 상품 · 가격 미입력 항목은 0원으로 등록됩니다';
+      var tbody = document.getElementById('upload-tbody');
+      tbody.innerHTML = uploadData.map(function(p) {
+        return '<tr><td>' + (p.barcode||'—') + '</td><td>' + p.name + '</td><td>' + (p.variant||'—') + '</td>' +
+          '<td style="text-align:center">' + (p.price ? p.price.toLocaleString()+'원' : '<span style="color:var(--text3)">미입력</span>') + '</td>' +
+          '<td style="text-align:center">' + p.stock + '</td></tr>';
+      }).join('');
       document.getElementById('upload-preview').style.display = 'block';
       document.getElementById('upload-preview').scrollIntoView({behavior:'smooth'});
     } catch(err) {
@@ -1226,39 +1116,20 @@ function cancelUpload() {
 
 async function confirmUpload() {
   if (!uploadData.length) return;
-  const btn = document.querySelector('#upload-preview .btn-primary');
-  btn.disabled = true;
-  btn.textContent = '등록 중...';
-
-  const inserts = uploadData.map(p => ({
-    barcode: p.barcode || null,
-    name: p.name,
-    variant: p.variant,
-    price: p.price,
-    stock: p.stock,
-    initial_stock: p.stock,
-    is_available: true,
-  }));
-
-  // 50개씩 나눠서 insert (Supabase 제한 대비)
-  const chunkSize = 50;
-  let errorMsg = null;
-  for (let i = 0; i < inserts.length; i += chunkSize) {
-    const chunk = inserts.slice(i, i + chunkSize);
-    const { error } = await sb.from('products').insert(chunk);
-    if (error) { errorMsg = error.message; break; }
+  var btn = document.querySelector('#upload-preview .btn-primary');
+  btn.disabled = true; btn.textContent = '등록 중...';
+  var inserts = uploadData.map(function(p) {
+    return { barcode:p.barcode||null, name:p.name, variant:p.variant, price:p.price, stock:p.stock, initial_stock:p.stock, is_available:true };
+  });
+  var chunkSize = 50, errorMsg = null;
+  for (var i = 0; i < inserts.length; i += chunkSize) {
+    var chunk = inserts.slice(i, i + chunkSize);
+    var res = await sb.from('products').insert(chunk);
+    if (res.error) { errorMsg = res.error.message; break; }
   }
-
-  btn.disabled = false;
-  btn.textContent = '✓ Supabase에 등록';
-
-  if (errorMsg) {
-    toast('등록 실패: ' + errorMsg, 'error');
-  } else {
-    toast(`✅ ${uploadData.length}개 상품이 등록되었습니다!`, 'success');
-    cancelUpload();
-    loadInventory();
-  }
+  btn.disabled = false; btn.textContent = '✓ Supabase에 등록';
+  if (errorMsg) toast('등록 실패: ' + errorMsg, 'error');
+  else { toast('✅ ' + uploadData.length + '개 상품이 등록되었습니다!', 'success'); cancelUpload(); loadInventory(); }
 }
 
 // ── Start ──────────────────────────────────────────────
