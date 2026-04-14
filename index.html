@@ -268,7 +268,13 @@
         <span id="last-updated" style="font-size:13px">연결 중...</span>
       </div>
     </div>
-    <div id="dashboard-stats"    class="stats-grid"></div>
+    <div id="dashboard-stats" class="stats-grid"></div>
+    <div style="margin-bottom:16px">
+      <input class="form-input" id="dashboard-search" type="text"
+        placeholder="🔍 상품명, 옵션, 바코드로 검색..."
+        oninput="filterDashboard(this.value)"
+        style="max-width:400px; font-size:14px; padding:9px 14px">
+    </div>
     <div id="dashboard-products" class="products-grid">
       <div class="loading-state" style="grid-column:1/-1"><div class="spinner"></div><div>로딩 중...</div></div>
     </div>
@@ -733,7 +739,17 @@ function renderDashboard() {
     return;
   }
 
-  document.getElementById('dashboard-products').innerHTML = S.products.map(p => {
+  renderDashboardProducts(S.products);
+  document.getElementById('last-updated').textContent = '방금 업데이트';
+}
+
+function renderDashboardProducts(products) {
+  const ct = document.getElementById('dashboard-products');
+  if (!products.length) {
+    ct.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="icon">🔍</div><p>검색 결과가 없습니다.</p></div>';
+    return;
+  }
+  ct.innerHTML = products.map(p => {
     const pct = p.initial_stock>0 ? Math.round(p.stock/p.initial_stock*100) : 0;
     const cls = stockClass(p.stock, p.initial_stock);
     return `
@@ -748,8 +764,17 @@ function renderDashboard() {
         <div style="margin-top:10px">${stockBadge(p.stock, p.initial_stock)}</div>
       </div>`;
   }).join('');
+}
 
-  document.getElementById('last-updated').textContent = '방금 업데이트';
+function filterDashboard(q) {
+  const kw = q.toLowerCase().trim();
+  if (!kw) { renderDashboardProducts(S.products); return; }
+  const filtered = S.products.filter(p =>
+    (p.name||'').toLowerCase().includes(kw) ||
+    (p.variant||'').toLowerCase().includes(kw) ||
+    (p.barcode||'').toLowerCase().includes(kw)
+  );
+  renderDashboardProducts(filtered);
 }
 
 function subscribeDashboard() {
