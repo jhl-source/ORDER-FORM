@@ -995,8 +995,9 @@ function handleExcelUpload(input) {
       const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
       // 첫 행(헤더) 제외, 빈 행 제거
       // 컬럼 자동 감지: 바코드 컬럼 있으면 5열, 없으면 4열
-      const firstRow = rows[1] || [];
-      const hasBarcodeCol = firstRow.length >= 5;
+      // 헤더 첫 셀이 "바코드"면 5열 형식
+      const headerRow = rows[0] || [];
+      const hasBarcodeCol = String(headerRow[0]||'').trim() === '바코드';
       uploadData = rows.slice(1).filter(r => r[0] || r[1] || r[2]).map(r => {
         if (hasBarcodeCol) {
           return {
