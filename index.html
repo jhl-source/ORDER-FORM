@@ -534,7 +534,7 @@ async function renderOrderForm() {
   const ct = document.getElementById('order-content');
   ct.innerHTML = '<div class="loading-state"><div class="spinner"></div><div>상품 불러오는 중...</div></div>';
   try {
-    const { data, error } = await supabase
+    const { data, error } = await sb
       .from('products').select('*')
       .eq('is_available', true)
       .order('created_at');
@@ -765,7 +765,7 @@ async function loadOrders() {
   const ct = document.getElementById('orders-content');
   ct.innerHTML = '<div class="loading-state"><div class="spinner"></div><div>로딩 중...</div></div>';
 
-  const { data, error } = await supabase
+  const { data, error } = await sb
     .from('orders').select('*').order('created_at', {ascending:false});
 
   if (error) {
@@ -820,7 +820,7 @@ async function loadInventory() {
   const ct = document.getElementById('inventory-content');
   ct.innerHTML = '<div class="loading-state"><div class="spinner"></div><div>로딩 중...</div></div>';
 
-  const { data, error } = await supabase
+  const { data, error } = await sb
     .from('products').select('*').order('created_at');
 
   if (error) {
