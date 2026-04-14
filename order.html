@@ -159,6 +159,14 @@ const CATS = [
 ];
 
 const sb = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseKey);
+
+// 주문서에서 제외할 바코드 목록
+const EXCLUDED_BARCODES = new Set([
+  '8809709718719','8809954202162','8809954204678',
+  '8809954208256','8809954208263','8809954208294','8809954208300',
+  '8809954202339','8809954202346',
+  '8809954207976','8809954207983','8809954207990',
+]);
 let products = [], cart = {}, currentCat = 'all';
 
 function krw(n) { return (n||0).toLocaleString('ko-KR')+'원'; }
@@ -183,7 +191,7 @@ async function loadProducts() {
   try {
     const { data, error } = await sb.from('products').select('*').eq('is_available',true).order('name');
     if (error) throw error;
-    products = data || [];
+    products = (data || []).filter(p => !EXCLUDED_BARCODES.has(String(p.barcode||'').trim()));
     renderAll();
   } catch(e) {
     document.getElementById('main-content').innerHTML =
