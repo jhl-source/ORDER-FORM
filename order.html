@@ -10,7 +10,7 @@
     :root {
       --bg:#FAF9F6;--bg2:#F0EEE9;--surface:#FFFFFF;--border:#E5E1D8;
       --text:#1A1A1A;--text2:#6B6560;--text3:#A09890;
-      --accent:#C8452A;--accent-light:#F7EBE8;
+      --accent:#C8452A;--accent-light:#F7EBE8;--accent-dark:#A33520;
       --green:#2E7D52;--green-bg:#E8F5EE;
       --amber:#A06A10;--amber-bg:#FBF3E3;
       --red:#B03020;--red-bg:#FAEAE8;
@@ -21,83 +21,113 @@
     *{box-sizing:border-box;margin:0;padding:0;}
     body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;}
 
-    .order-header{background:var(--surface);border-bottom:1px solid var(--border);padding:16px 20px;text-align:center;position:sticky;top:0;z-index:50;}
-    .brand{font-size:20px;font-weight:700;color:var(--accent);letter-spacing:-0.5px;}
-    .subtitle{font-size:13px;color:var(--text2);margin-top:3px;}
+    /* HEADER */
+    .hd{background:var(--surface);border-bottom:1px solid var(--border);padding:15px 20px;text-align:center;position:sticky;top:0;z-index:50;}
+    .hd-brand{font-size:20px;font-weight:700;color:var(--accent);letter-spacing:-.5px;}
+    .hd-sub{font-size:13px;color:var(--text2);margin-top:3px;}
 
-    .cat-tabs-wrap{position:sticky;top:57px;z-index:40;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch;}
-    .cat-tabs-wrap::-webkit-scrollbar{display:none;}
+    /* CAT TABS */
+    .cat-wrap{position:sticky;top:55px;z-index:40;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;}
+    .cat-wrap::-webkit-scrollbar{display:none;}
     .cat-tabs{display:flex;padding:0 12px;white-space:nowrap;}
-    .cat-tab{padding:11px 14px;font-size:13px;font-weight:600;color:var(--text3);cursor:pointer;border-bottom:2.5px solid transparent;transition:all .15s;flex-shrink:0;user-select:none;}
+    .cat-tab{padding:11px 13px;font-size:13px;font-weight:600;color:var(--text3);cursor:pointer;border-bottom:2.5px solid transparent;transition:all .15s;flex-shrink:0;user-select:none;}
     .cat-tab:hover{color:var(--text);}
-    .cat-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
-    .cat-badge{display:inline-flex;align-items:center;justify-content:center;background:var(--bg2);color:var(--text3);border-radius:100px;font-size:10px;font-weight:700;min-width:17px;height:17px;padding:0 4px;margin-left:3px;}
-    .cat-tab.active .cat-badge{background:var(--accent-light);color:var(--accent);}
+    .cat-tab.on{color:var(--accent);border-bottom-color:var(--accent);}
+    .cbadge{display:inline-flex;align-items:center;justify-content:center;background:var(--bg2);color:var(--text3);border-radius:100px;font-size:10px;font-weight:700;min-width:16px;height:16px;padding:0 4px;margin-left:3px;}
+    .cat-tab.on .cbadge{background:var(--accent-light);color:var(--accent);}
 
-    .container{max-width:640px;margin:0 auto;padding:12px 14px 100px;}
+    /* LAYOUT */
+    .wrap{max-width:640px;margin:0 auto;padding:12px 14px 110px;}
 
-    .group-title{font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;padding:18px 2px 8px;border-bottom:1px solid var(--border);margin-bottom:8px;}
-    .group-title:first-child{padding-top:10px;}
+    /* PRODUCT GROUP CARD */
+    .pgroup{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);margin-bottom:10px;overflow:hidden;transition:border-color .2s;}
+    .pgroup.has-selection{border-color:var(--accent);}
+    .pgroup-header{display:flex;align-items:center;padding:16px 18px;cursor:pointer;gap:14px;user-select:none;}
+    .pgroup-header:active{background:var(--bg);}
+    .pgroup-info{flex:1;min-width:0;}
+    .pgroup-name{font-size:15px;font-weight:700;letter-spacing:-.3px;}
+    .pgroup-price{font-size:14px;color:var(--accent);font-weight:700;margin-top:3px;}
+    .pgroup-meta{display:flex;align-items:center;gap:6px;margin-top:5px;flex-wrap:wrap;}
+    .pgroup-sel-summary{font-size:12px;color:var(--text2);}
+    .pgroup-arrow{font-size:18px;color:var(--text3);transition:transform .2s;flex-shrink:0;}
+    .pgroup.open .pgroup-arrow{transform:rotate(180deg);}
+    .cart-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0;}
 
-    .product-list{display:flex;flex-direction:column;gap:7px;margin-bottom:4px;}
-    .product-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:13px 15px;display:flex;align-items:center;gap:12px;transition:border-color .15s,background .15s;}
-    .product-card.selected{border-color:var(--accent);background:var(--accent-light);}
-    .product-card.sold-out{opacity:.4;pointer-events:none;}
-    .product-info{flex:1;min-width:0;}
-    .product-name{font-size:14px;font-weight:600;}
-    .product-variant{font-size:12px;color:var(--text2);margin-top:1px;}
-    .product-price{font-size:14px;font-weight:700;color:var(--accent);margin-top:4px;}
-    .sbadge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:100px;font-size:11px;font-weight:600;margin-top:3px;}
+    /* OPTION PANEL */
+    .opt-panel{display:none;padding:0 18px 18px;border-top:1px solid var(--bg2);}
+    .pgroup.open .opt-panel{display:block;}
+    .opt-label{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin:14px 0 8px;}
+
+    /* OPTION BUTTONS */
+    .opt-btns{display:flex;flex-wrap:wrap;gap:7px;}
+    .opt-btn{padding:7px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:var(--font);font-size:13px;font-weight:600;color:var(--text2);background:var(--surface);cursor:pointer;transition:all .15s;white-space:nowrap;}
+    .opt-btn:hover:not(.disabled){border-color:var(--text3);color:var(--text);}
+    .opt-btn.selected{border-color:var(--accent);background:var(--accent-light);color:var(--accent);}
+    .opt-btn.disabled{opacity:.35;cursor:not-allowed;text-decoration:line-through;}
+    .opt-btn.soldout::after{content:'품절';font-size:10px;margin-left:4px;color:var(--gray);}
+
+    /* QTY + ADD */
+    .qty-row{display:flex;align-items:center;gap:12px;margin-top:16px;}
+    .qty-stepper{display:flex;align-items:center;border:1.5px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;}
+    .qty-btn{width:38px;height:38px;border:none;background:var(--bg2);cursor:pointer;font-size:18px;color:var(--text);display:flex;align-items:center;justify-content:center;}
+    .qty-btn:hover:not(:disabled){background:var(--border);}
+    .qty-btn:disabled{opacity:.3;cursor:not-allowed;}
+    .qty-num{width:38px;text-align:center;font-size:15px;font-weight:700;background:white;line-height:38px;}
+    .add-btn{flex:1;padding:10px;background:var(--accent);color:white;border:none;border-radius:var(--radius-sm);font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;transition:all .15s;}
+    .add-btn:hover{background:var(--accent-dark);}
+    .add-btn:disabled{opacity:.4;cursor:not-allowed;}
+
+    /* SELECTED ITEMS IN PANEL */
+    .selected-items{margin-top:14px;display:flex;flex-direction:column;gap:6px;}
+    .sel-item{display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border-radius:var(--radius-sm);padding:9px 12px;font-size:13px;}
+    .sel-item-name{color:var(--text2);flex:1;}
+    .sel-item-price{font-weight:700;margin:0 10px;}
+    .sel-item-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:0 2px;line-height:1;}
+    .sel-item-del:hover{color:var(--red);}
+
+    /* STOCK BADGE */
+    .sbadge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:100px;font-size:11px;font-weight:600;}
     .sg{background:var(--green-bg);color:var(--green);}
     .sa{background:var(--amber-bg);color:var(--amber);}
     .sr{background:var(--red-bg);color:var(--red);}
     .sx{background:var(--gray-bg);color:var(--gray);}
 
-    .qty-stepper{display:flex;align-items:center;border:1.5px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;flex-shrink:0;}
-    .qty-btn{width:36px;height:36px;border:none;background:var(--bg2);cursor:pointer;font-size:18px;color:var(--text);display:flex;align-items:center;justify-content:center;transition:background .15s;}
-    .qty-btn:hover:not(:disabled){background:var(--border);}
-    .qty-btn:disabled{opacity:.3;cursor:not-allowed;}
-    .qty-num{width:36px;text-align:center;font-size:15px;font-weight:700;background:white;}
-
-    .cart-bar{position:fixed;bottom:0;left:0;right:0;background:var(--accent);color:white;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 -4px 20px rgba(0,0,0,.15);transform:translateY(100%);transition:transform .25s ease;z-index:100;}
+    /* CART BAR */
+    .cart-bar{position:fixed;bottom:0;left:0;right:0;background:var(--accent);color:white;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 -4px 20px rgba(0,0,0,.15);transform:translateY(100%);transition:transform .25s;z-index:100;}
     .cart-bar.show{transform:translateY(0);}
-    .cart-bar-r{display:flex;align-items:center;gap:10px;}
-    .cart-bubble{background:white;color:var(--accent);border-radius:100px;padding:2px 10px;font-size:13px;font-weight:700;}
+    .cb-right{display:flex;align-items:center;gap:10px;}
+    .cb-bubble{background:white;color:var(--accent);border-radius:100px;padding:2px 10px;font-size:13px;font-weight:700;}
 
-    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;z-index:200;backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:opacity .2s;}
-    .modal-overlay.show{opacity:1;pointer-events:auto;}
-    .modal{background:var(--surface);border-radius:var(--radius) var(--radius) 0 0;width:100%;max-width:640px;margin:0 auto;max-height:92vh;overflow-y:auto;padding:6px 20px 44px;transform:translateY(30px);transition:transform .25s ease;}
-    .modal-overlay.show .modal{transform:translateY(0);}
-    .modal-handle{width:36px;height:4px;background:var(--border);border-radius:100px;margin:12px auto 18px;}
-    .modal-title{font-size:17px;font-weight:700;margin-bottom:16px;}
-
+    /* MODAL */
+    .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;z-index:200;backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:opacity .2s;}
+    .modal-bg.show{opacity:1;pointer-events:auto;}
+    .modal{background:var(--surface);border-radius:var(--radius) var(--radius) 0 0;width:100%;max-width:640px;margin:0 auto;max-height:92vh;overflow-y:auto;padding:6px 20px 44px;transform:translateY(30px);transition:transform .25s;}
+    .modal-bg.show .modal{transform:translateY(0);}
+    .mhandle{width:36px;height:4px;background:var(--border);border-radius:100px;margin:12px auto 18px;}
+    .mtitle{font-size:17px;font-weight:700;margin-bottom:16px;}
     .sec-title{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin:18px 0 10px;padding-bottom:7px;border-bottom:1px solid var(--border);}
-    .form-group{margin-bottom:12px;}
-    .form-label{display:block;font-size:13px;font-weight:600;color:var(--text2);margin-bottom:4px;}
-    .form-input{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:var(--font);font-size:15px;color:var(--text);background:var(--surface);outline:none;transition:border-color .15s;}
-    .form-input:focus{border-color:var(--accent);}
-    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-
+    .fg{margin-bottom:12px;}
+    .fl{display:block;font-size:13px;font-weight:600;color:var(--text2);margin-bottom:4px;}
+    .fi{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:var(--font);font-size:15px;color:var(--text);background:var(--surface);outline:none;transition:border-color .15s;}
+    .fi:focus{border-color:var(--accent);}
+    .frow{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
     .order-row{display:flex;justify-content:space-between;padding:7px 0;font-size:14px;border-bottom:1px solid var(--bg2);}
     .order-row:last-child{border-bottom:none;}
-    .order-total-row{display:flex;justify-content:space-between;align-items:center;padding-top:12px;margin-top:4px;border-top:2px solid var(--border);font-weight:700;font-size:16px;}
+    .order-total{display:flex;justify-content:space-between;align-items:center;padding-top:12px;margin-top:4px;border-top:2px solid var(--border);font-weight:700;font-size:16px;}
     .order-total-amt{color:var(--accent);font-size:20px;}
-
     .btn{display:flex;align-items:center;justify-content:center;width:100%;padding:14px;border-radius:var(--radius-sm);font-family:var(--font);font-size:16px;font-weight:700;cursor:pointer;border:none;transition:all .15s;margin-top:10px;}
-    .btn-primary{background:var(--accent);color:white;}
-    .btn-primary:hover{filter:brightness(1.08);}
-    .btn-primary:disabled{opacity:.45;cursor:not-allowed;filter:none;}
-    .btn-ghost{background:var(--bg2);color:var(--text2);}
+    .btn-p{background:var(--accent);color:white;}
+    .btn-p:hover{filter:brightness(1.08);}
+    .btn-p:disabled{opacity:.45;cursor:not-allowed;filter:none;}
+    .btn-g{background:var(--bg2);color:var(--text2);}
 
+    /* SUCCESS */
     .success-wrap{text-align:center;padding:60px 20px;}
-    .success-circle{width:70px;height:70px;background:var(--green-bg);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 18px;}
-    .success-title{font-size:22px;font-weight:700;}
-    .success-sub{color:var(--text2);font-size:14px;margin-top:6px;}
+    .success-circle{width:68px;height:68px;background:var(--green-bg);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 18px;}
     .receipt{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:18px;text-align:left;margin-top:22px;}
-    .receipt-row{display:flex;justify-content:space-between;padding:7px 0;font-size:14px;color:var(--text2);border-bottom:1px solid var(--bg2);}
-    .receipt-row:last-child{border-bottom:none;}
+    .rrow{display:flex;justify-content:space-between;padding:7px 0;font-size:14px;color:var(--text2);border-bottom:1px solid var(--bg2);}
+    .rrow:last-child{border-bottom:none;}
 
-    .loading-wrap{text-align:center;padding:80px 20px;color:var(--text2);}
     .spinner{width:30px;height:30px;border:3px solid var(--bg2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 14px;}
     @keyframes spin{to{transform:rotate(360deg);}}
 
@@ -106,35 +136,35 @@
     #toast.error{background:var(--red);}
     #toast.success{background:var(--green);}
 
-    @media(max-width:480px){.form-row{grid-template-columns:1fr;}}
+    @media(max-width:480px){.frow{grid-template-columns:1fr;}}
   </style>
 </head>
 <body>
 
-<div class="order-header">
-  <div class="brand">likalika</div>
-  <div class="subtitle">팝업스토어 사전주문</div>
+<div class="hd">
+  <div class="hd-brand">likalika</div>
+  <div class="hd-sub">팝업스토어 사전주문</div>
 </div>
 
-<div class="cat-tabs-wrap" id="cat-tabs-wrap" style="display:none">
+<div class="cat-wrap" id="cat-wrap" style="display:none">
   <div class="cat-tabs" id="cat-tabs"></div>
 </div>
 
-<div class="container" id="main-content">
-  <div class="loading-wrap"><div class="spinner"></div>상품 불러오는 중...</div>
+<div class="wrap" id="main">
+  <div style="text-align:center;padding:80px 20px;color:var(--text2)"><div class="spinner"></div>상품 불러오는 중...</div>
 </div>
 
 <div class="cart-bar" id="cart-bar" onclick="openModal()">
   <span>🛍 장바구니 보기</span>
-  <div class="cart-bar-r">
-    <span id="cart-bar-total"></span>
-    <span class="cart-bubble" id="cart-bar-count">0</span>
+  <div class="cb-right">
+    <span id="cb-total"></span>
+    <span class="cb-bubble" id="cb-count">0</span>
   </div>
 </div>
 
-<div class="modal-overlay" id="cart-modal">
+<div class="modal-bg" id="modal-bg">
   <div class="modal">
-    <div class="modal-handle"></div>
+    <div class="mhandle"></div>
     <div id="modal-body"></div>
   </div>
 </div>
@@ -143,271 +173,429 @@
 
 <script>
 const CONFIG = {
-  supabaseUrl: 'https://ynvzkldgalvasuapusrl.supabase.co',
-  supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InludnprbGRnYWx2YXN1YXB1c3JsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNDA2MzksImV4cCI6MjA5MTcxNjYzOX0.MaZLGSzwoG9gBtsZ1mCvswXqpaRjhGLTdRxJsuFg5xM',
-  maxQtyPerItem: 5,
+  supabaseUrl:'https://ynvzkldgalvasuapusrl.supabase.co',
+  supabaseKey:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InludnprbGRnYWx2YXN1YXB1c3JsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNDA2MzksImV4cCI6MjA5MTcxNjYzOX0.MaZLGSzwoG9gBtsZ1mCvswXqpaRjhGLTdRxJsuFg5xM',
+  maxQty:5,
 };
 
-// 카테고리 정의
+const EXCLUDED = new Set(['8809709718719','8809954202162','8809954204678','8809954208256','8809954208263','8809954208294','8809954208300','8809954202339','8809954202346','8809954207976','8809954207983','8809954207990']);
+
 const CATS = [
-  { key:'all',       label:'전체',      icon:'🛍' },
-  { key:'bag',       label:'가방/캐리어', icon:'👜', names:['쿠션백/쿠션 세트 리뉴얼','[크림] 쿠션백 크로스끈','[블랙] 쿠션백 크로스끈','[토프] 쿠션백 크로스끈','튼튼 반달 슬링백','슬링백 쿠션 커버','[화이트_M] 뉴 슬링백 _ 쿠션 솜 속통','[화이트_L] 뉴 슬링백 _ 쿠션 솜 속통','티코어 백팩','베이직 산책가방'] },
-  { key:'stroller',  label:'유모차',    icon:'🍼', names:['올데이 라이트 일체형 유모차 2세대','올데이 플러스 일체형 유모차','유모차 가드 컴포터'] },
-  { key:'clothes',   label:'의류',      icon:'👕', names:['멜로우 후드 티셔츠','플로럴 레이어드 티셔츠','프레피 카라 티셔츠','팔레트 스트라이프 티셔츠','시그니처 슬리브리스','안티버그 쿨 슬리브리스','포인트 슬리브리스','빼꼼 케이프 빕'] },
-  { key:'walk',      label:'산책용품',  icon:'🐾', names:['깅엄 체크 하네스_X자형','깅엄 체크 목줄','깅엄 체크 핸즈프리 리드줄','깅엄 체크 풉백 홀더','아이스 쿨 스카프','휴대용 원터치 산책 물통','휴대용 실리콘 냠냠 간식 파우치'] },
-  { key:'character', label:'캐릭터',   icon:'🎀', names:['캐릭터 입체 파우치'] },
+  {key:'all',      label:'전체',       icon:'🛍'},
+  {key:'bag',      label:'가방/캐리어', icon:'👜', names:['쿠션백/쿠션 세트 리뉴얼','튼튼 반달 슬링백','티코어 백팩','베이직 산책가방']},
+  {key:'stroller', label:'유모차',     icon:'🍼', names:['올데이 라이트 일체형 유모차 2세대','올데이 플러스 일체형 유모차','유모차 가드 컴포터']},
+  {key:'clothes',  label:'의류',       icon:'👕', names:['멜로우 후드 티셔츠','플로럴 레이어드 티셔츠','프레피 카라 티셔츠','팔레트 스트라이프 티셔츠','시그니처 슬리브리스','안티버그 쿨 슬리브리스','포인트 슬리브리스','빼꼼 케이프 빕']},
+  {key:'walk',     label:'산책용품',   icon:'🐾', names:['깅엄 체크 하네스_X자형','깅엄 체크 목줄','깅엄 체크 핸즈프리 리드줄','깅엄 체크 풉백 홀더','아이스 쿨 스카프','휴대용 원터치 산책 물통','휴대용 실리콘 냠냠 간식 파우치']},
+  {key:'character',label:'캐릭터',    icon:'🎀', names:['캐릭터 입체 파우치']},
 ];
 
 const sb = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseKey);
+let allProducts = [], cart = {}, currentCat = 'all', openGroup = null;
+// cart: { productId: qty }
 
-// 주문서에서 제외할 바코드 목록
-const EXCLUDED_BARCODES = new Set([
-  '8809709718719','8809954202162','8809954204678',
-  '8809954208256','8809954208263','8809954208294','8809954208300',
-  '8809954202339','8809954202346',
-  '8809954207976','8809954207983','8809954207990',
-]);
-let products = [], cart = {}, currentCat = 'all';
-
-function krw(n) { return (n||0).toLocaleString('ko-KR')+'원'; }
-
-let toastTimer;
-function toast(msg, type='') {
-  const el = document.getElementById('toast');
-  el.textContent = msg; el.className = 'show'+(type?' '+type:'');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=>el.className='', 3000);
+// ── UTILS ─────────────────────────────────────────────
+function krw(n){return(n||0).toLocaleString('ko-KR')+'원';}
+let ttimer;
+function toast(msg,type=''){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.className='show'+(type?' '+type:'');
+  clearTimeout(ttimer);ttimer=setTimeout(()=>el.className='',3000);
 }
 
-function sbadge(p) {
+// 옵션 파싱: "컬러_사이즈" → {color, size}
+function parseVariant(v) {
+  if (!v || v==='—') return {color:'', size:''};
+  const parts = v.split('_');
+  if (parts.length === 1) return {color:parts[0], size:''};
+  // 마지막 파트가 사이즈 패턴이면 분리
+  const last = parts[parts.length-1];
+  const sizePattern = /^(XS|S\/M|S|SM|M|L|XL|2XL|3XL|4XL)$/i;
+  if (sizePattern.test(last)) {
+    return {color: parts.slice(0,-1).join('_'), size: last};
+  }
+  return {color: v, size: ''};
+}
+
+function stockLabel(p) {
   if (p.stock<=0) return '<span class="sbadge sx">품절</span>';
   const r = p.initial_stock>0 ? p.stock/p.initial_stock : 1;
-  if (r>.5) return '<span class="sbadge sg">재고 충분</span>';
-  if (r>.2) return '<span class="sbadge sa">소량 남음</span>';
-  return '<span class="sbadge sr">마감 임박</span>';
+  if (r>.5) return '<span class="sbadge sg">충분</span>';
+  if (r>.2) return '<span class="sbadge sa">소량</span>';
+  return '<span class="sbadge sr">임박</span>';
 }
 
+// ── LOAD ──────────────────────────────────────────────
 async function loadProducts() {
   try {
-    const { data, error } = await sb.from('products').select('*').eq('is_available',true).order('name');
-    if (error) throw error;
-    products = (data || []).filter(p => !EXCLUDED_BARCODES.has(String(p.barcode||'').trim()));
+    const {data,error} = await sb.from('products').select('*').eq('is_available',true).order('name');
+    if(error) throw error;
+    allProducts = (data||[]).filter(p=>!EXCLUDED.has(String(p.barcode||'').trim()));
     renderAll();
   } catch(e) {
-    document.getElementById('main-content').innerHTML =
-      `<div style="text-align:center;padding:80px 20px;color:var(--text3)">⚠️ 상품을 불러오지 못했습니다.<br><small>${e.message}</small></div>`;
+    document.getElementById('main').innerHTML=`<div style="text-align:center;padding:80px 20px;color:var(--text3)">⚠️ ${e.message}</div>`;
   }
 }
 
 function catProducts(key) {
-  if (key==='all') return products;
-  const c = CATS.find(c=>c.key===key);
-  return c?.names ? products.filter(p=>c.names.includes(p.name)) : products;
+  if(key==='all') return allProducts;
+  const c=CATS.find(c=>c.key===key);
+  return c?.names ? allProducts.filter(p=>c.names.includes(p.name)) : allProducts;
 }
 
+// ── RENDER ────────────────────────────────────────────
 function renderAll() {
-  if (!products.length) {
-    document.getElementById('main-content').innerHTML =
-      '<div style="text-align:center;padding:80px 20px;color:var(--text3)">📦 현재 판매 가능한 상품이 없습니다.</div>';
+  if(!allProducts.length){
+    document.getElementById('main').innerHTML='<div style="text-align:center;padding:80px 20px;color:var(--text3)">📦 현재 판매 가능한 상품이 없습니다.</div>';
     return;
   }
-  document.getElementById('cat-tabs-wrap').style.display = 'block';
-  document.getElementById('cat-tabs').innerHTML = CATS.map(c => {
-    const cnt = catProducts(c.key).length;
-    if (!cnt && c.key!=='all') return '';
-    return `<div class="cat-tab ${c.key===currentCat?'active':''}" data-key="${c.key}" onclick="switchCat('${c.key}',this)">
-      ${c.icon} ${c.label}<span class="cat-badge">${cnt}</span>
-    </div>`;
+  // 탭
+  document.getElementById('cat-wrap').style.display='block';
+  document.getElementById('cat-tabs').innerHTML = CATS.map(c=>{
+    const cnt=catProducts(c.key).length;
+    if(!cnt&&c.key!=='all') return '';
+    return `<div class="cat-tab${c.key===currentCat?' on':''}" onclick="switchCat('${c.key}',this)">${c.icon} ${c.label}<span class="cbadge">${cnt}</span></div>`;
   }).join('');
-  renderProducts();
+  renderGroups();
 }
 
-function switchCat(key, el) {
-  currentCat = key;
-  document.querySelectorAll('.cat-tab').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
-  renderProducts();
-  window.scrollTo({top:0,behavior:'smooth'});
-}
-
-function renderProducts() {
+function renderGroups() {
   const list = catProducts(currentCat);
-  const groups = {};
-  list.forEach(p => { (groups[p.name] = groups[p.name]||[]).push(p); });
+  // 상품명으로 그룹핑
+  const gmap = {};
+  list.forEach(p=>{ (gmap[p.name]=gmap[p.name]||[]).push(p); });
+
+  let html='';
+  Object.entries(gmap).forEach(([name, items])=>{
+    const isOpen = openGroup===name;
+    const selectedInGroup = items.filter(p=>(cart[p.id]||0)>0);
+    const totalQty = selectedInGroup.reduce((s,p)=>s+(cart[p.id]||0),0);
+    const priceRange = getPriceRange(items);
+    const allSoldOut = items.every(p=>p.stock<=0);
+
+    html+=`<div class="pgroup${isOpen?' open':''}${totalQty>0?' has-selection':''}" id="grp-${esc(name)}">
+      <div class="pgroup-header" onclick="toggleGroup('${esc(name)}')">
+        <div class="pgroup-info">
+          <div class="pgroup-name">${name}</div>
+          <div class="pgroup-price">${priceRange}</div>
+          <div class="pgroup-meta">
+            ${allSoldOut?'<span class="sbadge sx">품절</span>':''}
+            ${totalQty>0?`<span style="font-size:12px;color:var(--accent);font-weight:700">${totalQty}개 담김</span>`:''}
+          </div>
+        </div>
+        ${totalQty>0?'<div class="cart-dot"></div>':''}
+        <div class="pgroup-arrow">⌄</div>
+      </div>
+      <div class="opt-panel" id="panel-${esc(name)}">
+        ${renderOptPanel(name, items)}
+      </div>
+    </div>`;
+  });
+  document.getElementById('main').innerHTML = html;
+}
+
+function esc(s){return s.replace(/[^a-zA-Z0-9가-힣]/g,'_');}
+
+function getPriceRange(items) {
+  const prices = [...new Set(items.map(p=>p.price).filter(p=>p>0))];
+  if(!prices.length) return '가격 미정';
+  prices.sort((a,b)=>a-b);
+  return prices.length>1 && prices[0]!==prices[prices.length-1]
+    ? `${krw(prices[0])} ~ ${krw(prices[prices.length-1])}`
+    : krw(prices[0]);
+}
+
+function renderOptPanel(name, items) {
+  // 컬러 목록 추출
+  const colors = [...new Set(items.map(p=>parseVariant(p.variant).color).filter(Boolean))];
+  // 사이즈 목록 추출
+  const sizes  = [...new Set(items.map(p=>parseVariant(p.variant).size).filter(Boolean))];
+  // 옵션 없이 variant만 있는 경우 (컬러만, 사이즈만, 단품 등)
+  const hasColor = colors.length > 0;
+  const hasSize  = sizes.length > 0;
 
   let html = '';
-  Object.entries(groups).forEach(([gname, items]) => {
-    html += `<div class="group-title">${gname}</div><div class="product-list">`;
-    items.forEach(p => {
-      const qty = cart[p.id]||0, max = Math.min(CONFIG.maxQtyPerItem, p.stock), out = p.stock<=0;
-      html += `<div class="product-card${out?' sold-out':''}${qty>0?' selected':''}" id="card-${p.id}">
-        <div class="product-info">
-          <div class="product-name">${p.name}</div>
-          ${p.variant?`<div class="product-variant">${p.variant}</div>`:''}
-          <div class="product-price">${krw(p.price)}</div>
-          ${sbadge(p)}
-        </div>
-        <div class="qty-stepper">
-          <button class="qty-btn" onclick="updateCart('${p.id}',-1)" ${qty===0?'disabled':''}>−</button>
-          <div class="qty-num" id="qty-${p.id}">${qty}</div>
-          <button class="qty-btn" onclick="updateCart('${p.id}',1)" ${out||qty>=max?'disabled':''}>+</button>
+
+  if (!hasColor && !hasSize) {
+    // 단품 (옵션 없음)
+    items.forEach(p=>{
+      const qty=cart[p.id]||0;
+      html+=`<div style="padding:4px 0">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+          <div><span style="font-size:14px;font-weight:600">${p.name}</span> <span style="font-size:13px;color:var(--accent);font-weight:700">${krw(p.price)}</span> ${stockLabel(p)}</div>
+          <div class="qty-stepper">
+            <button class="qty-btn" onclick="setQty('${p.id}',-1,event)" ${qty===0?'disabled':''}>−</button>
+            <div class="qty-num">${qty}</div>
+            <button class="qty-btn" onclick="setQty('${p.id}',1,event)" ${p.stock<=0||qty>=Math.min(CONFIG.maxQty,p.stock)?'disabled':''}>+</button>
+          </div>
         </div>
       </div>`;
     });
-    html += '</div>';
+    return html;
+  }
+
+  if (hasColor && !hasSize) {
+    // 컬러만
+    html += '<div class="opt-label">컬러 / 옵션</div><div class="opt-btns">';
+    colors.forEach(color=>{
+      const p = items.find(p=>parseVariant(p.variant).color===color);
+      const qty = p ? (cart[p.id]||0) : 0;
+      const out = !p || p.stock<=0;
+      html+=`<button class="opt-btn${out?' disabled soldout':''}" onclick="colorOnlySelect('${name}','${color}',event)">
+        ${color}${qty>0?` <span style="color:var(--accent)">×${qty}</span>`:''}
+      </button>`;
+    });
+    html+='</div>';
+    return html;
+  }
+
+  // 컬러 + 사이즈
+  html += '<div class="opt-label">컬러</div><div class="opt-btns" id="colors-'+esc(name)+'">';
+  colors.forEach(color=>{
+    const hasStock = items.some(p=>parseVariant(p.variant).color===color && p.stock>0);
+    html+=`<button class="opt-btn${!hasStock?' disabled':''}${getSelectedColor(name)===color?' selected':''}" 
+      onclick="selectColor('${name}','${color}',event)">${color}</button>`;
   });
-  document.getElementById('main-content').innerHTML = html;
+  html+='</div>';
+
+  // 사이즈 (선택된 컬러 기준)
+  const selColor = getSelectedColor(name);
+  html += `<div class="opt-label">사이즈</div><div class="opt-btns" id="sizes-${esc(name)}">`;
+  const SIZE_ORDER = ['XS','S','SM','S/M','M','L','XL','2XL','3XL','4XL'];
+  const sortedSizes = sizes.sort((a,b)=>{
+    const ai=SIZE_ORDER.indexOf(a.toUpperCase()), bi=SIZE_ORDER.indexOf(b.toUpperCase());
+    return (ai<0?99:ai)-(bi<0?99:bi);
+  });
+  sortedSizes.forEach(size=>{
+    const p = items.find(p=>{const v=parseVariant(p.variant);return v.color===selColor&&v.size===size;});
+    const qty = p?(cart[p.id]||0):0;
+    const out = !p||p.stock<=0;
+    html+=`<button class="opt-btn${out?' disabled soldout':''}" 
+      onclick="selectSize('${name}','${size}',event)">
+      ${size}${qty>0?`<span style="color:var(--accent);font-size:11px;margin-left:3px">×${qty}</span>`:''}
+    </button>`;
+  });
+  html+='</div>';
+
+  // 담긴 항목 요약
+  const groupItems = items.filter(p=>(cart[p.id]||0)>0);
+  if(groupItems.length){
+    html+='<div class="selected-items" id="sel-items-'+esc(name)+'">';
+    groupItems.forEach(p=>{
+      html+=`<div class="sel-item">
+        <span class="sel-item-name">${parseVariant(p.variant).color} / ${parseVariant(p.variant).size} × ${cart[p.id]}</span>
+        <span class="sel-item-price">${krw(p.price*cart[p.id])}</span>
+        <button class="sel-item-del" onclick="removeItem('${p.id}',event)">✕</button>
+      </div>`;
+    });
+    html+='</div>';
+  }
+
+  return html;
 }
 
-function updateCart(id, delta) {
-  const p = products.find(p=>p.id===id); if (!p) return;
-  const cur = cart[id]||0;
-  const nxt = Math.max(0, Math.min(cur+delta, CONFIG.maxQtyPerItem, p.stock));
-  if (nxt===0) delete cart[id]; else cart[id]=nxt;
-  const qe = document.getElementById('qty-'+id); if (qe) qe.textContent=nxt;
-  const ce = document.getElementById('card-'+id);
-  if (ce) {
-    ce.classList.toggle('selected', nxt>0);
-    const btns = ce.querySelectorAll('.qty-btn');
-    if(btns[0]) btns[0].disabled=nxt===0;
-    if(btns[1]) btns[1].disabled=p.stock<=0||nxt>=Math.min(CONFIG.maxQtyPerItem,p.stock);
-  }
+// 선택된 컬러 상태
+const selectedColors = {};
+function getSelectedColor(name){return selectedColors[name]||'';}
+
+function selectColor(name, color, e){
+  e.stopPropagation();
+  selectedColors[name]=color;
+  refreshPanel(name);
+}
+
+function colorOnlySelect(name, color, e){
+  e.stopPropagation();
+  const items = getGroupItems(name);
+  const p = items.find(p=>parseVariant(p.variant).color===color);
+  if(!p||p.stock<=0) return;
+  setQtyDirect(p.id, (cart[p.id]||0)+1, p.stock);
+  refreshPanel(name);
   updateCartBar();
 }
 
-function cartItems() {
-  return Object.entries(cart).filter(([,q])=>q>0).map(([id,qty])=>{
-    const p=products.find(p=>p.id===id);
-    return {...p,qty,subtotal:p.price*qty};
-  });
-}
-function cartTotal() { return cartItems().reduce((s,i)=>s+i.subtotal,0); }
-function cartCount() { return Object.values(cart).reduce((s,q)=>s+q,0); }
-
-function updateCartBar() {
-  const n = cartCount();
-  document.getElementById('cart-bar').classList.toggle('show',n>0);
-  document.getElementById('cart-bar-count').textContent = n;
-  document.getElementById('cart-bar-total').textContent = n>0?krw(cartTotal()):'';
+function selectSize(name, size, e){
+  e.stopPropagation();
+  const color = getSelectedColor(name);
+  if(!color){toast('먼저 컬러를 선택하세요','error');return;}
+  const items = getGroupItems(name);
+  const p = items.find(p=>{const v=parseVariant(p.variant);return v.color===color&&v.size===size;});
+  if(!p||p.stock<=0) return;
+  setQtyDirect(p.id,(cart[p.id]||0)+1,p.stock);
+  refreshPanel(name);
+  updateCartBar();
 }
 
-function openModal() {
-  renderModal();
-  document.getElementById('cart-modal').classList.add('show');
-  document.body.style.overflow='hidden';
-}
-function closeModal() {
-  document.getElementById('cart-modal').classList.remove('show');
-  document.body.style.overflow='';
-}
-document.getElementById('cart-modal').addEventListener('click',e=>{
-  if(e.target===document.getElementById('cart-modal')) closeModal();
-});
-
-function renderModal() {
-  const items = cartItems(), total = cartTotal();
-  document.getElementById('modal-body').innerHTML = `
-    <div class="modal-title">🛍 주문서 작성</div>
-    <div style="background:var(--bg2);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:4px">
-      ${items.map(i=>`<div class="order-row"><span style="color:var(--text2)">${i.name}${i.variant?' · '+i.variant:''} ×${i.qty}</span><span style="font-weight:700">${krw(i.subtotal)}</span></div>`).join('')}
-      <div class="order-total-row"><span>합계</span><span class="order-total-amt">${krw(total)}</span></div>
-    </div>
-
-    <div class="sec-title">주문자 정보</div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">이름 *</label>
-        <input class="form-input" id="f-name" type="text" placeholder="홍길동" autocomplete="name">
-      </div>
-      <div class="form-group">
-        <label class="form-label">연락처 *</label>
-        <input class="form-input" id="f-phone" type="tel" placeholder="010-0000-0000" inputmode="tel">
-      </div>
-    </div>
-
-    <div class="sec-title">배송지 정보</div>
-    <div class="form-group">
-      <label class="form-label">우편번호</label>
-      <input class="form-input" id="f-zip" type="text" placeholder="우편번호 (선택)" inputmode="numeric" style="max-width:160px">
-    </div>
-    <div class="form-group">
-      <label class="form-label">주소 *</label>
-      <input class="form-input" id="f-addr1" type="text" placeholder="시/도, 구/군, 도로명">
-    </div>
-    <div class="form-group">
-      <label class="form-label">상세 주소</label>
-      <input class="form-input" id="f-addr2" type="text" placeholder="동/호수 등 상세 주소">
-    </div>
-
-    <div class="sec-title">기타</div>
-    <div class="form-group" style="margin-bottom:20px">
-      <label class="form-label">메모 (선택)</label>
-      <input class="form-input" id="f-notes" type="text" placeholder="픽업 시간, 요청사항 등">
-    </div>
-
-    <button class="btn btn-primary" id="submit-btn" onclick="submitOrder()">주문하기</button>
-    <button class="btn btn-ghost" onclick="closeModal()">계속 담기</button>
-  `;
+function setQtyDirect(id, qty, maxStock){
+  const clamped = Math.max(0,Math.min(qty,CONFIG.maxQty,maxStock));
+  if(clamped===0) delete cart[id]; else cart[id]=clamped;
 }
 
-async function submitOrder() {
-  const name  = document.getElementById('f-name')?.value?.trim();
-  const phone = document.getElementById('f-phone')?.value?.trim();
-  const zip   = document.getElementById('f-zip')?.value?.trim();
-  const addr1 = document.getElementById('f-addr1')?.value?.trim();
-  const addr2 = document.getElementById('f-addr2')?.value?.trim();
-  const notes = document.getElementById('f-notes')?.value?.trim();
+function setQty(id, delta, e){
+  e.stopPropagation();
+  const p=allProducts.find(p=>p.id===id);if(!p)return;
+  setQtyDirect(id,(cart[id]||0)+delta,p.stock);
+  const name=p.name;
+  refreshPanel(name);
+  updateCartBar();
+}
 
-  if (!name)  { toast('이름을 입력하세요','error'); return; }
-  if (!phone) { toast('연락처를 입력하세요','error'); return; }
-  if (!addr1) { toast('주소를 입력하세요','error'); return; }
+function removeItem(id, e){
+  e.stopPropagation();
+  delete cart[id];
+  const p=allProducts.find(p=>p.id===id);
+  if(p) refreshPanel(p.name);
+  updateCartBar();
+}
 
-  const address = [zip?`[${zip}]`:'', addr1, addr2].filter(Boolean).join(' ');
-  const fullNotes = [address, notes].filter(Boolean).join(' | ');
+function getGroupItems(name){return allProducts.filter(p=>p.name===name);}
 
-  const items = cartItems().map(i=>({
-    product_id:i.id, product_name:i.name,
-    variant:i.variant||'', qty:i.qty, unit_price:i.price,
-  }));
-
-  const btn = document.getElementById('submit-btn');
-  btn.disabled=true; btn.textContent='처리 중...';
-
-  try {
-    const { data, error } = await sb.rpc('place_order',{
-      p_customer_name:name, p_customer_phone:phone,
-      p_items:items, p_notes:fullNotes||null,
-    });
-    if (error) throw error;
-    if (!data.success) throw new Error(data.error);
-    closeModal(); cart={}; updateCartBar();
-    showSuccess(name, phone, address, items, data.total, data.order_id);
-  } catch(e) {
-    toast('주문 실패: '+e.message,'error');
-    btn.disabled=false; btn.textContent='주문하기';
+function refreshPanel(name){
+  const items=getGroupItems(name);
+  const panel=document.getElementById('panel-'+esc(name));
+  const grp=document.getElementById('grp-'+esc(name));
+  if(!panel) return;
+  panel.innerHTML=renderOptPanel(name,items);
+  const totalQty=items.reduce((s,p)=>s+(cart[p.id]||0),0);
+  if(grp){
+    grp.classList.toggle('has-selection',totalQty>0);
+    // 뱃지 업데이트
+    const meta=grp.querySelector('.pgroup-meta');
+    if(meta){
+      const allSoldOut=items.every(p=>p.stock<=0);
+      meta.innerHTML=(allSoldOut?'<span class="sbadge sx">품절</span>':'')+
+        (totalQty>0?`<span style="font-size:12px;color:var(--accent);font-weight:700">${totalQty}개 담김</span>`:'');
+    }
+    const dot=grp.querySelector('.cart-dot');
+    const arrow=grp.querySelector('.pgroup-arrow');
+    if(totalQty>0&&!dot){arrow.insertAdjacentHTML('beforebegin','<div class="cart-dot"></div>');}
+    else if(totalQty===0&&dot){dot.remove();}
   }
 }
 
-function showSuccess(name, phone, address, items, total, orderId) {
-  const sid = orderId.split('-')[0].toUpperCase();
-  document.getElementById('cat-tabs-wrap').style.display='none';
+function toggleGroup(name){
+  openGroup = openGroup===name ? null : name;
+  renderGroups();
+  // 열린 그룹으로 스크롤
+  if(openGroup){
+    setTimeout(()=>{
+      const el=document.getElementById('grp-'+esc(name));
+      if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+    },50);
+  }
+}
+
+function switchCat(key, el){
+  currentCat=key; openGroup=null;
+  document.querySelectorAll('.cat-tab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+  renderGroups();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ── CART BAR ──────────────────────────────────────────
+function cartItems(){
+  return Object.entries(cart).filter(([,q])=>q>0).map(([id,qty])=>{
+    const p=allProducts.find(p=>p.id===id);
+    return p?{...p,qty,subtotal:p.price*qty}:null;
+  }).filter(Boolean);
+}
+function cartTotal(){return cartItems().reduce((s,i)=>s+i.subtotal,0);}
+function cartCount(){return Object.values(cart).reduce((s,q)=>s+q,0);}
+
+function updateCartBar(){
+  const n=cartCount();
+  document.getElementById('cart-bar').classList.toggle('show',n>0);
+  document.getElementById('cb-count').textContent=n;
+  document.getElementById('cb-total').textContent=n>0?krw(cartTotal()):'';
+}
+
+// ── MODAL ─────────────────────────────────────────────
+function openModal(){
+  renderModal();
+  document.getElementById('modal-bg').classList.add('show');
+  document.body.style.overflow='hidden';
+}
+function closeModal(){
+  document.getElementById('modal-bg').classList.remove('show');
+  document.body.style.overflow='';
+}
+document.getElementById('modal-bg').addEventListener('click',e=>{
+  if(e.target===document.getElementById('modal-bg')) closeModal();
+});
+
+function renderModal(){
+  const items=cartItems(),total=cartTotal();
+  document.getElementById('modal-body').innerHTML=`
+    <div class="mtitle">🛍 주문서 작성</div>
+    <div style="background:var(--bg2);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:4px">
+      ${items.map(i=>`<div class="order-row"><span style="color:var(--text2)">${i.name}${i.variant?' · '+i.variant:''} ×${i.qty}</span><span style="font-weight:700">${krw(i.subtotal)}</span></div>`).join('')}
+      <div class="order-total"><span>합계</span><span class="order-total-amt">${krw(total)}</span></div>
+    </div>
+    <div class="sec-title">주문자 정보</div>
+    <div class="frow">
+      <div class="fg"><label class="fl">이름 *</label><input class="fi" id="f-name" type="text" placeholder="홍길동" autocomplete="name"></div>
+      <div class="fg"><label class="fl">연락처 *</label><input class="fi" id="f-phone" type="tel" placeholder="010-0000-0000" inputmode="tel"></div>
+    </div>
+    <div class="sec-title">배송지 정보</div>
+    <div class="fg"><label class="fl">우편번호</label><input class="fi" id="f-zip" type="text" placeholder="우편번호 (선택)" inputmode="numeric" style="max-width:160px"></div>
+    <div class="fg"><label class="fl">주소 *</label><input class="fi" id="f-addr1" type="text" placeholder="시/도, 구/군, 도로명"></div>
+    <div class="fg"><label class="fl">상세 주소</label><input class="fi" id="f-addr2" type="text" placeholder="동/호수 등"></div>
+    <div class="sec-title">기타</div>
+    <div class="fg" style="margin-bottom:20px"><label class="fl">메모 (선택)</label><input class="fi" id="f-notes" type="text" placeholder="픽업 시간, 요청사항 등"></div>
+    <button class="btn btn-p" id="submit-btn" onclick="submitOrder()">주문하기</button>
+    <button class="btn btn-g" onclick="closeModal()">계속 담기</button>
+  `;
+}
+
+// ── SUBMIT ────────────────────────────────────────────
+async function submitOrder(){
+  const name =document.getElementById('f-name')?.value?.trim();
+  const phone=document.getElementById('f-phone')?.value?.trim();
+  const zip  =document.getElementById('f-zip')?.value?.trim();
+  const addr1=document.getElementById('f-addr1')?.value?.trim();
+  const addr2=document.getElementById('f-addr2')?.value?.trim();
+  const notes=document.getElementById('f-notes')?.value?.trim();
+  if(!name) {toast('이름을 입력하세요','error');return;}
+  if(!phone){toast('연락처를 입력하세요','error');return;}
+  if(!addr1){toast('주소를 입력하세요','error');return;}
+  const address=[zip?`[${zip}]`:'',addr1,addr2].filter(Boolean).join(' ');
+  const fullNotes=[address,notes].filter(Boolean).join(' | ');
+  const items=cartItems().map(i=>({product_id:i.id,product_name:i.name,variant:i.variant||'',qty:i.qty,unit_price:i.price}));
+  const btn=document.getElementById('submit-btn');
+  btn.disabled=true;btn.textContent='처리 중...';
+  try{
+    const {data,error}=await sb.rpc('place_order',{p_customer_name:name,p_customer_phone:phone,p_items:items,p_notes:fullNotes||null});
+    if(error) throw error;
+    if(!data.success) throw new Error(data.error);
+    closeModal();cart={};updateCartBar();
+    showSuccess(name,phone,address,items,data.total,data.order_id);
+  }catch(e){
+    toast('주문 실패: '+e.message,'error');
+    btn.disabled=false;btn.textContent='주문하기';
+  }
+}
+
+function showSuccess(name,phone,address,items,total,orderId){
+  const sid=orderId.split('-')[0].toUpperCase();
+  document.getElementById('cat-wrap').style.display='none';
   document.getElementById('cart-bar').classList.remove('show');
-  document.getElementById('main-content').innerHTML = `
+  document.getElementById('main').innerHTML=`
     <div class="success-wrap">
       <div class="success-circle">✓</div>
-      <div class="success-title">주문 완료!</div>
-      <div class="success-sub">${name}님, 주문이 접수되었습니다 🐾</div>
+      <div style="font-size:22px;font-weight:700">주문 완료!</div>
+      <div style="color:var(--text2);font-size:14px;margin-top:6px">${name}님, 주문이 접수되었습니다 🐾</div>
       <div class="receipt">
-        <div class="receipt-row"><span>주문번호</span><strong style="font-family:monospace;color:var(--accent)">#${sid}</strong></div>
-        <div class="receipt-row"><span>주문자</span><strong>${name} · ${phone}</strong></div>
-        <div class="receipt-row" style="flex-direction:column;gap:3px;align-items:flex-start"><span>배송지</span><strong style="margin-top:2px">${address}</strong></div>
+        <div class="rrow"><span>주문번호</span><strong style="font-family:monospace;color:var(--accent)">#${sid}</strong></div>
+        <div class="rrow"><span>주문일시</span><strong>${new Date().toLocaleString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false})}</strong></div>
+        <div class="rrow"><span>주문자</span><strong>${name} · ${phone}</strong></div>
+        <div class="rrow" style="flex-direction:column;gap:3px;align-items:flex-start"><span>배송지</span><strong style="margin-top:2px">${address}</strong></div>
         <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--bg2)">
           ${items.map(i=>`<div class="order-row"><span>${i.product_name}${i.variant?' · '+i.variant:''} ×${i.qty}</span><span style="font-weight:700">${krw(i.unit_price*i.qty)}</span></div>`).join('')}
-          <div class="order-total-row"><span>총 결제금액</span><span class="order-total-amt">${krw(total)}</span></div>
+          <div class="order-total"><span>총 결제금액</span><span class="order-total-amt">${krw(total)}</span></div>
         </div>
       </div>
       <p style="color:var(--text3);font-size:13px;margin-top:18px">현장에서 결제 후 픽업해주세요</p>
-      <button class="btn btn-ghost" style="margin-top:14px;max-width:200px;margin-left:auto;margin-right:auto" onclick="location.reload()">추가 주문하기</button>
+      <button class="btn btn-g" style="margin-top:14px;max-width:200px;margin-left:auto;margin-right:auto" onclick="location.reload()">추가 주문하기</button>
     </div>`;
 }
 
