@@ -825,6 +825,47 @@ async function loadOrders() {
   S.channels.push(ch);
 }
 
+function renderOrdersList(orders) {
+  const ct = document.getElementById('orders-content');
+  if (!orders.length) {
+    ct.innerHTML = '<div class="empty-state"><div class="icon">📋</div><p>검색 결과가 없습니다.</p></div>';
+    return;
+  }
+  const rows = orders.map(function(o) {
+    const items = Array.isArray(o.items) ? o.items : (typeof o.items==='string' ? JSON.parse(o.items||'[]') : []);
+    const shortId = o.id.split('-')[0].toUpperCase();
+    const safeName = encodeURIComponent(o.customer_name);
+    let html = '<div class="order-card" id="order-' + o.id + '">';
+    html += '<div class="order-card-header">';
+    html +=   '<div>';
+    html +=     '<div class="order-customer">' + o.customer_name + ' <span style="font-size:11px;color:var(--text3);font-weight:400;font-family:monospace">#' + shortId + '</span></div>';
+    html +=     '<div class="order-meta">' + (o.customer_phone||'') + ' · ' + fmtTime(o.created_at) + '</div>';
+    html +=   '</div>';
+    html +=   '<div class="flex gap-6 items-center">';
+    html +=     '<span class="badge badge-green">접수</span>';
+    html +=     '<button class="btn btn-ghost btn-sm" style="padding:4px 10px;font-size:12px" onclick="openEditOrderModal('' + o.id + '')">수정</button>';
+    html +=     '<button class="btn btn-ghost btn-sm" style="padding:4px 10px;font-size:12px;color:var(--red)" onclick="deleteOrder('' + o.id + '',decodeURIComponent('' + safeName + ''))">삭제</button>';
+    html +=   '</div>';
+    html += '</div>';
+    html += '<div>';
+    items.forEach(function(i) {
+      html += '<div class="order-item-row">';
+      html +=   '<span>';
+      if (i.barcode) html += '<span style="font-size:11px;color:var(--text3);margin-right:6px;font-family:monospace">' + i.barcode + '</span>';
+      html +=     i.product_name + (i.variant ? ' · ' + i.variant : '') + ' &times;' + i.qty;
+      html +=   '</span>';
+      html +=   '<span>' + krw(i.unit_price * i.qty) + '</span>';
+      html += '</div>';
+    });
+    html += '</div>';
+    if (o.notes) html += '<div style="font-size:13px;color:var(--text2);margin-top:8px;padding-top:8px;border-top:1px solid var(--bg2)">📝 ' + o.notes + '</div>';
+    html += '<div class="order-total-row"><span>합계</span><span class="text-accent">' + krw(o.total_amount) + '</span></div>';
+    html += '</div>';
+    return html;
+  });
+  ct.innerHTML = '<div class="orders-list">' + rows.join('') + '</div>';
+}
+
 // ── INVENTORY ─────────────────────────────────────────
 async function loadInventory() {
   const ct = document.getElementById('inventory-content');
