@@ -307,6 +307,12 @@
         <button class="btn btn-primary btn-sm" onclick="openProductModal()">+ 상품 추가</button>
       </div>
     </div>
+    <div style="margin-bottom:16px">
+      <input class="form-input" id="inventory-search" type="text"
+        placeholder="🔍 상품명, 옵션, 바코드로 검색..."
+        oninput="filterInventory(this.value)"
+        style="max-width:400px; font-size:14px; padding:9px 14px">
+    </div>
     <!-- 업로드 미리보기 패널 -->
     <div id="upload-preview" style="display:none; margin-bottom:20px;">
       <div class="card" style="border:1.5px solid var(--accent); padding:20px;">
@@ -828,20 +834,30 @@ async function loadInventory() {
     return;
   }
 
+  renderInventoryTable(S.products);
+}
+
+function renderInventoryTable(products) {
+  const ct = document.getElementById('inventory-content');
+  if (!products.length) {
+    ct.innerHTML = `<div class="empty-state"><div class="icon">🔍</div><p>검색 결과가 없습니다.</p></div>`;
+    return;
+  }
   ct.innerHTML = `
     <div style="overflow-x:auto">
     <table class="product-table">
       <thead><tr>
-        <th>상품명</th><th>옵션</th><th>판매가</th>
+        <th>바코드</th><th>상품명</th><th>옵션</th><th>판매가</th>
         <th>현재 재고</th><th>초기 재고</th><th>판매율</th>
         <th>판매 여부</th><th>액션</th>
       </tr></thead>
       <tbody>
-        ${S.products.map(p => {
+        ${products.map(p => {
           const sold = p.initial_stock > 0 ? Math.round((p.initial_stock-p.stock)/p.initial_stock*100) : 0;
           const soldCls = sold>=80?'badge-red':sold>=50?'badge-amber':'badge-green';
           return `
             <tr>
+              <td style="font-size:12px;color:var(--text3)">${p.barcode||'—'}</td>
               <td><strong>${p.name}</strong></td>
               <td>${p.variant||'—'}</td>
               <td>${krw(p.price)}</td>
@@ -937,6 +953,34 @@ async function deleteProduct(id, name) {
 }
 
 
+// ── SEARCH / FILTER ───────────────────────────────────
+function filterInventory(q) {
+  if (!q) { loadInventory(); return; }
+  const kw = q.toLowerCase();
+  const filtered = S.products.filter(p =>
+    (p.name||'').toLowerCase().includes(kw) ||
+    (p.variant||'').toLowerCase().includes(kw) ||
+    (p.barcode||'').toLowerCase().includes(kw)
+  );
+  renderInventoryTable(filtered);
+}
+
+function filterOrders(q) {
+  if (!q) { renderOrdersList(S.orders); return; }
+  const kw = q.toLowerCase();
+  const filtered = S.orders.filter(o => {
+    const items = Array.isArray(o.items) ? o.items : (typeof o.items === 'string' ? JSON.parse(o.items) : []);
+    const itemMatch = items.some(i =>
+      (i.product_name||'').toLowerCase().includes(kw) ||
+      (i.barcode||'').toLowerCase().includes(kw)
+    );
+    return (o.customer_name||'').toLowerCase().includes(kw) ||
+           (o.customer_phone||'').toLowerCase().includes(kw) ||
+           itemMatch;
+  });
+  renderOrdersList(filtered);
+}
+
 // ── EXCEL UPLOAD ───────────────────────────────────────
 let uploadData = [];
 
@@ -950,12 +994,28 @@ function handleExcelUpload(input) {
       const ws = wb.Sheets[wb.SheetNames[0]];
       const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
       // 첫 행(헤더) 제외, 빈 행 제거
-      uploadData = rows.slice(1).filter(r => r[0] || r[1]).map(r => ({
-        name:    String(r[0]||'').trim(),
-        variant: String(r[1]||'').trim() || null,
-        price:   parseInt(r[2]) || 0,
-        stock:   parseInt(r[3]) || 0,
-      })).filter(r => r.name);
+      // 컬럼 자동 감지: 바코드 컬럼 있으면 5열, 없으면 4열
+      const firstRow = rows[1] || [];
+      const hasBarcodeCol = firstRow.length >= 5;
+      uploadData = rows.slice(1).filter(r => r[0] || r[1] || r[2]).map(r => {
+        if (hasBarcodeCol) {
+          return {
+            barcode: String(r[0]||'').trim() || null,
+            name:    String(r[1]||'').trim(),
+            variant: String(r[2]||'').trim().replace('—','') || null,
+            price:   parseInt(r[3]) || 0,
+            stock:   parseInt(r[4]) || 0,
+          };
+        } else {
+          return {
+            barcode: null,
+            name:    String(r[0]||'').trim(),
+            variant: String(r[1]||'').trim().replace('—','') || null,
+            price:   parseInt(r[2]) || 0,
+            stock:   parseInt(r[3]) || 0,
+          };
+        }
+      }).filter(r => r.name);
 
       if (!uploadData.length) { toast('상품 데이터가 없습니다','error'); return; }
 
@@ -965,6 +1025,7 @@ function handleExcelUpload(input) {
       const tbody = document.getElementById('upload-tbody');
       tbody.innerHTML = uploadData.map(p => `
         <tr>
+          <td>${p.barcode||'—'}</td>
           <td>${p.name}</td>
           <td>${p.variant||'—'}</td>
           <td style="text-align:center">${p.price ? p.price.toLocaleString()+'원' : '<span style="color:var(--text3)">미입력</span>'}</td>
@@ -992,6 +1053,7 @@ async function confirmUpload() {
   btn.textContent = '등록 중...';
 
   const inserts = uploadData.map(p => ({
+    barcode: p.barcode || null,
     name: p.name,
     variant: p.variant,
     price: p.price,
